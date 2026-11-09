@@ -1,0 +1,26 @@
+<% @page_title = "Media" %>
+<%# Every active client's library, the business's own first. %>
+<section class="card card--flush media-clients">
+  <header class="card__head card__head--bordered">
+    <h2 class="card__title">Libraries</h2>
+    <p class="card__hint">Each <%= term(:client).downcase %>’s files, wherever they’re kept, in folders. Lock a folder to keep it from the <%= term(:client).downcase %>’s portal.</p>
+  </header>
+  <% if @clients.any? %>
+    <ul class="list">
+      <% @clients.each do |client| %>
+        <%# herb:key client.id %>
+        <li data-filter-target="item">
+          <%= link_to media_library_path(client), class: "list-row media-clients__row" do %>
+            <span class="media-clients__icon"><%= icon_tag(client.internal? ? "home" : "picture-add") %></span>
+            <span class="list-row__content">
+              <span class="list-row__title"><%= client.name %></span>
+              <span class="list-row__desc"><%= pluralize(@folder_counts.fetch(client.id, 0), "folder") %><%= " · your own" if client.internal? %></span>
+            </span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <%= render "layouts/shared/empty", text: "No active #{term(:client, count: 2).downcase} yet." %>
+  <% end %>
+</section>

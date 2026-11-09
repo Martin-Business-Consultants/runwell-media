@@ -1,0 +1,28 @@
+<%# locals: (client:) %>
+<%# The client's Media tab: its library's folders at the top, how many files each holds, and the
+    way into the full library. %>
+<% library = Media::Library.new(client) %>
+<section class="card record-card">
+  <header class="card__head">
+    <h2 class="card__title">Media</h2>
+    <p class="card__hint"><%= pluralize(library.documents.size, "file") %> in <%= pluralize(library.folders.size, "folder") %>, wherever they’re kept.</p>
+    <div class="card__action"><%= link_to "Open the library", media_library_path(client), class: "btn btn--secondary btn--sm", data: { turbo_frame: "_top" } %></div>
+  </header>
+  <% folders = library.folders_in(nil) %>
+  <% if folders.any? %>
+    <ul class="media-folders">
+      <% folders.each do |folder| %>
+        <%# herb:key folder.id %>
+        <li>
+          <%= link_to media_library_path(client, folder: folder.id), class: "media-folder", data: { turbo_frame: "_top" } do %>
+            <span class="media-folder__icon"><%= icon_tag(folder.hidden? ? "lock" : "grid") %></span>
+            <span class="media-folder__name"><%= folder.name %></span>
+            <span class="media-folder__meta"><%= pluralize(library.count_in(folder), "file") %><%= " · kept from them" if folder.hidden? %></span>
+          <% end %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="record-card__empty">No folders yet. Open the library to make some.</p>
+  <% end %>
+</section>

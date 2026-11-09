@@ -1,0 +1,105 @@
+<% @page_title = @folder ? @folder.name : @client.name %>
+<%= parent_page "Media", media_libraries_path %>
+<% crumbs = @library.breadcrumbs(@folder) %>
+<% locked = @folder&.locked? || false %>
+<%# A client's library: its folders down the side, and the open folder's (or the top's) folders and
+    files, each file a tile. Files are the core's Documents wherever they're kept; what's added here
+    goes on the client. A locked folder keeps everything in it from the client's portal. %>
+<div class="media-library">
+  <aside class="card media-library__side">
+    <h2 class="media-library__client"><%= link_to @client.name, @client %></h2>
+    <%= link_to media_library_path(@client), class: "media-tree__link media-tree__link--top", aria: { current: (@folder ? nil : "page") } do %>
+      <%= icon_tag "home" %><span class="media-tree__name">Top of the library</span>
+    <% end %>
+    <%= render "media/libraries/tree", library: @library, parent: nil, current: @folder %>
+    <details class="settings-fold media-library__new-folder">
+      <summary class="btn btn--secondary btn--sm"><%= icon_tag "add" %> New folder</summary>
+      <%= form_with url: media_folders_path(client_id: @client.id), scope: :folder, namespace: "new_media_folder", class: "settings-subform" do |form| %>
+        <%= form.hidden_field :parent_id, value: @folder&.id %>
+        <div class="field">
+          <%= form.label :name, "Name", class: "field__label" %>
+          <%= form.text_field :name, required: true, autocomplete: "off", placeholder: "Brand assets", maxlength: 80 %>
+          <p class="field__hint">Inside <%= @folder ? @folder.name : "the top of the library" %>. Open to the <%= term(:client).downcase %> until you lock it.</p>
+        </div>
+        <div><button type="submit" class="btn btn--primary btn--sm">Add folder</button></div>
+      <% end %>
+    </details>
+  </aside>
+
+  <section class="media-library__main">
+    <header class="media-library__head">
+      <nav class="media-crumbs" aria-label="Folder">
+        <%= link_to "Top", media_library_path(@client), class: "media-crumbs__link" %>
+        <% crumbs.each do |crumb| %>
+          <%# herb:key crumb.id %>
+          <span class="media-crumbs__sep" aria-hidden="true">/</span>
+          <%= link_to crumb.name, media_library_path(@client, folder: crumb.id), class: "media-crumbs__link" %>
+        <% end %>
+      </nav>
+      <% if @folder %>
+        <div class="button-row">
+          <% if @folder.hidden? %>
+            <span class="badge media-badge--locked"><%= icon_tag "lock" %> Kept from <%= @client.name %></span>
+            <%= button_to "Open to the #{term(:client).downcase}", media_folder_lock_path(@folder), method: :delete, class: "btn btn--secondary btn--sm",
+                  title: "Files shared before it was locked are shared again" %>
+          <% elsif locked %>
+            <span class="badge media-badge--locked"><%= icon_tag "lock" %> Kept from <%= @client.name %> by a folder above</span>
+          <% else %>
+            <%= button_to media_folder_lock_path(@folder), class: "btn btn--secondary btn--sm", title: "Nothing in it reaches the #{term(:client).downcase}’s portal" do %>
+              <%= icon_tag "lock" %> Keep from the <%= term(:client).downcase %>
+            <% end %>
+          <% end %>
+          <details class="media-library__rename">
+            <summary class="btn btn--ghost btn--sm"><%= icon_tag "pencil" %> Rename or move</summary>
+            <%= form_with model: @folder, url: media_folder_path(@folder), method: :patch, scope: :folder, namespace: dom_id(@folder), class: "settings-subform" do |form| %>
+              <div class="field">
+                <%= form.label :name, "Name", class: "field__label" %>
+                <%= form.text_field :name, required: true, autocomplete: "off", maxlength: 80 %>
+              </div>
+              <div class="field">
+                <%= form.label :parent_id, "Inside", class: "field__label" %>
+                <%= form.select :parent_id, media_folder_options(@library).reject { |_, id| id.to_s.present? && id.in?(@folder.subtree_ids) }, { selected: @folder.parent_id } %>
+              </div>
+              <div><button type="submit" class="btn btn--primary btn--sm">Save</button></div>
+            <% end %>
+          </details>
+          <% if @folder.empty? %>
+            <%= render "layouts/shared/delete_dialog", name: @folder.name, path: media_folder_path(@folder), message: "The folder is empty, so nothing else goes with it." %>
+          <% end %>
+        </div>
+      <% end %>
+    </header>
+
+    <%# Files go straight to storage, then into this folder (or the top), on the client, internal. %>
+    <%= form_with url: media_uploads_path, multipart: true, namespace: "media_upload", class: "document-drop", data: document_upload_data.merge(turbo_action: "advance") do |form| %>
+      <%= hidden_field_tag :client_id, @client.id, id: nil %>
+      <%= hidden_field_tag :folder_id, @folder&.id, id: nil %>
+      <%= document_drop_target form %>
+    <% end %>
+
+    <% folders = @library.folders_in(@folder) %>
+    <% files = @library.documents_in(@folder) %>
+    <% if folders.any? %>
+      <ul class="media-folders">
+        <% folders.each do |folder| %>
+          <%# herb:key folder.id %>
+          <li data-filter-target="item">
+            <%= link_to media_library_path(@client, folder: folder.id), class: "media-folder" do %>
+              <span class="media-folder__icon"><%= icon_tag(folder.hidden? ? "lock" : "grid") %></span>
+              <span class="media-folder__name"><%= folder.name %></span>
+              <span class="media-folder__meta"><%= pluralize(@library.count_in(folder), "file") %><%= " · kept from the #{term(:client).downcase}" if folder.hidden? %></span>
+            <% end %>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+
+    <% if files.any? %>
+      <ul class="media-files">
+        <%= render partial: "media/libraries/file", collection: files, as: :document, locals: { library: @library, locked: locked } %>
+      </ul>
+    <% elsif folders.none? %>
+      <%= render "layouts/shared/empty", text: (@folder ? "Nothing in #{@folder.name} yet: drop files above." : "No files yet: drop some above, or add them on a #{term(:work).downcase} or #{term(:task).downcase}.") %>
+    <% end %>
+  </section>
+</div>

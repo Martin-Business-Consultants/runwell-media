@@ -1,0 +1,18 @@
+<%# locals: (library:, parent:, current:) %>
+<%# The folders inside parent (nil: the top), each a link with its own inside it, the open one marked. %>
+<% folders = library.folders_in(parent) %>
+<% if folders.any? %>
+  <ul class="media-tree">
+    <% folders.each do |folder| %>
+      <%# herb:key folder.id %>
+      <li>
+        <%= link_to media_library_path(library.client, folder: folder.id), class: "media-tree__link", aria: { current: (current&.id == folder.id ? "page" : nil) } do %>
+          <%= icon_tag(folder.hidden? ? "lock" : "grid") %>
+          <span class="media-tree__name"><%= folder.name %></span>
+          <span class="media-tree__count"><%= library.count_in(folder) %></span>
+        <% end %>
+        <%= render "media/libraries/tree", library: library, parent: folder, current: current %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>

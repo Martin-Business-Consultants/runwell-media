@@ -1,0 +1,58 @@
+<% @page_title = @folder ? @folder.name : "Library" %>
+<% crumbs = @library.breadcrumbs(@folder) %>
+<% content_for :header do %>
+  <h1 class="portal-page-header__title"><%= @page_title %></h1>
+  <p class="portal-page-header__description">Files we’ve shared with you, in their folders.</p>
+<% end %>
+
+<%# What's shared with the client, in the folders not kept from them (Media::Library.for_client). %>
+<% if @folder %>
+  <nav class="media-crumbs" aria-label="Folder">
+    <%= link_to "Library", media_portal_library_path, class: "media-crumbs__link" %>
+    <% crumbs.each do |crumb| %>
+      <%# herb:key crumb.id %>
+      <span class="media-crumbs__sep" aria-hidden="true">/</span>
+      <%= link_to crumb.name, media_portal_library_path(folder: crumb.id), class: "media-crumbs__link" %>
+    <% end %>
+  </nav>
+<% end %>
+
+<% folders = @library.folders_in(@folder).select { @library.shown?(it) } %>
+<% files = @library.documents_in(@folder) %>
+<% if folders.any? %>
+  <ul class="media-folders">
+    <% folders.each do |folder| %>
+      <%# herb:key folder.id %>
+      <li>
+        <%= link_to media_portal_library_path(folder: folder.id), class: "media-folder" do %>
+          <span class="media-folder__icon"><%= icon_tag "grid" %></span>
+          <span class="media-folder__name"><%= folder.name %></span>
+          <span class="media-folder__meta"><%= pluralize(@library.count_in(folder), "file") %></span>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% end %>
+
+<% if files.any? %>
+  <ul class="media-files">
+    <% files.each do |document| %>
+      <%# herb:key document.id %>
+      <li class="media-file">
+        <%= link_to media_file_url(document), class: "media-file__preview", target: "_blank", rel: "noopener" do %>
+          <% if media_image?(document) %>
+            <img src="<%= media_file_url(document) %>" alt="" loading="lazy" class="media-file__image">
+          <% else %>
+            <span class="media-file__type"><%= document.filename.extension&.downcase.presence || "file" %></span>
+          <% end %>
+        <% end %>
+        <div class="media-file__body">
+          <%= link_to document.filename.to_s, media_file_url(document, download: true), class: "media-file__name", title: "Download #{document.filename}" %>
+          <p class="media-file__meta"><%= number_to_human_size(document.byte_size) %> · <%= l document.created_at.in_time_zone.to_date, format: :short %></p>
+        </div>
+      </li>
+    <% end %>
+  </ul>
+<% elsif folders.none? %>
+  <%= render "layouts/shared/empty", text: (@folder ? "Nothing shared in #{@folder.name} yet." : "Nothing shared with you yet.") %>
+<% end %>
