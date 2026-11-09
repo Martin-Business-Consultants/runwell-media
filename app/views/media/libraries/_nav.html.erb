@@ -1,0 +1,21 @@
+<%# locals: (library:, current:) %>
+<%# The library's folders as the sidebar beside the page (the core's section_nav, placed by the
+    layout): every library, then this one's top and its folders nested, each with how many files sit
+    right in it. Each is a drop target: a file dragged onto one moves there (media--drop). %>
+<% section_nav "Media" do %>
+  <%= section_nav_link "All libraries", media_libraries_path, icon: "grid", current: false %>
+  <%= section_nav_heading library.client.name %>
+  <a href="<%= media_library_path(library.client) %>" class="media-nav__link"<% unless current %> aria-current="page"<% end %> data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
+    <%= icon_tag "home" %><span class="media-nav__name">Top of the library</span><span class="media-nav__count"><%= library.count_in(nil) %></span>
+  </a>
+  <%= render "media/libraries/tree", library: library, parent: nil, current: current %>
+  <details class="media-nav__new">
+    <summary class="media-nav__link media-nav__add"><%= icon_tag "add" %><span class="media-nav__name">New folder</span></summary>
+    <%= form_with url: media_folders_path(client_id: library.client.id), scope: :folder, namespace: "new_media_folder", class: "media-nav__form" do |form| %>
+      <%= form.hidden_field :parent_id, value: current&.id %>
+      <%= form.text_field :name, required: true, autocomplete: "off", placeholder: "Folder name", maxlength: 80, aria: { label: "Folder name" } %>
+      <p class="field__hint">Inside <%= current ? current.name : "the top of the library" %>.</p>
+      <div><button type="submit" class="btn btn--primary btn--sm">Add folder</button></div>
+    <% end %>
+  </details>
+<% end %>

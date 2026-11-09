@@ -20,6 +20,11 @@ module Media
       [ [ "Top of the library", "" ] ] + library.folders.map { [ library.breadcrumbs(it).map(&:name).join(" / "), it.id ] }.sort_by { it.first.downcase }
     end
 
+    # "3 files · 2 folders": what's right in a folder, as opening it shows.
+    def media_folder_summary(library, folder)
+      [ pluralize(library.count_in(folder), "file"), (pluralize(library.folders_in(folder).size, "folder") if library.folders_in(folder).any?) ].compact.join(" · ")
+    end
+
     def media_file_url(document, download: false)
       rails_blob_path(document.file, disposition: download ? :attachment : :inline)
     end

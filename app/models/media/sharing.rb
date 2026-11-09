@@ -8,10 +8,14 @@ module Media
 
     included do
       has_one :media_placement, class_name: "Media::Placement", dependent: :delete
+      has_one :media_asset, class_name: "Media::Asset", dependent: :delete
       validate :media_folder_allows_sharing, if: -> { client_visible? && will_save_change_to_client_visible? }
     end
 
     def media_folder = media_placement&.folder
+
+    # What the library shows it as: its title, else its file name.
+    def media_title = media_asset&.title.presence || filename.to_s
 
     private
       def media_folder_allows_sharing

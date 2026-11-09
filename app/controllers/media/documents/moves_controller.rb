@@ -10,19 +10,20 @@ module Media
 
       def create
         document = Document.find(params[:document_id])
-        library = Media::Library.new(client_of(document))
+        library = Media::Library.new(Media::Library.client_of(document))
         folder = library.folder(params[:folder_id]) if params[:folder_id].present?
         return redirect_back(fallback_location: media_library_path(library.client), alert: "That folder isn’t in #{library.client.name}’s library.") if params[:folder_id].present? && folder.nil?
 
         Media::Placement.move!(document, folder)
-        redirect_to media_library_path(library.client, folder: folder&.id), notice: "#{document.filename} moved to #{folder&.name || "the top of the library"}."
-      end
-
-      private
-        def client_of(document)
-          record = document.documentable
-          record.is_a?(Client) ? record : (record.try(:client) || record.try(:work)&.client) || raise(ActiveRecord::RecordNotFound)
+        notice = "#{document.media_title} moved to #{folder&.name || "the top of the library"}."
+        # A file dragged onto a folder (the drop controller): the page redraws in place, with the notice.
+        if request.format.turbo_stream?
+          flash[:notice] = notice
+          return render(turbo_stream: turbo_stream.refresh(request_id: nil))
         end
+
+        redirect_to media_library_path(library.client, folder: folder&.id), notice: notice
+      end
     end
   end
 end

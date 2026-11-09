@@ -11,13 +11,19 @@ module Media
 
     def self.for_client(client) = new(client, client_view: true)
 
+    # Whose library a file is in: the client it's on, or the client of the work, section or task.
+    def self.client_of(document)
+      record = document.documentable
+      record.is_a?(Client) ? record : (record.try(:client) || record.try(:work)&.client) || raise(ActiveRecord::RecordNotFound)
+    end
+
     def client_view? = @client_view
 
     # Every one of the client's files, newest first, with what it's on and its folder.
     def documents
       @documents ||= begin
         scope = @client_view ? client.client_documents : all_documents
-        scope.includes(:documentable, :uploaded_by, :media_placement, file_attachment: :blob).to_a
+        scope.includes(:documentable, :uploaded_by, :media_placement, :media_asset, file_attachment: :blob).to_a
       end
     end
 
@@ -34,18 +40,29 @@ module Media
     def folders_in(folder) = folders.select { it.parent_id == folder&.id }
     def documents_in(folder) = documents.select { it.media_placement&.folder_id == folder&.id || (folder.nil? && placed_out_of_view?(it)) }
 
-    # How many files are in a folder and every folder inside it.
-    def count_in(folder)
-      ids = subtree(folder).map(&:id)
-      documents.count { ids.include?(it.media_placement&.folder_id) }
-    end
+    # How many files sit right in a folder (nil: the top), what opening it shows: counted once
+    # for the whole library.
+    def count_in(folder) = direct_counts[folder&.id]
+
+    # How many files a folder holds, its folders' included.
+    def total_in(folder) = subtree(folder).sum { direct_counts[it&.id] }
 
     # The client's view shows a folder only when something shared is in it, however deep.
-    def shown?(folder) = !@client_view || count_in(folder).positive?
+    def shown?(folder) = !@client_view || total_in(folder).positive?
 
     def breadcrumbs(folder) = folder ? chain(folder) : []
 
     private
+      # Files per folder id (nil: the top). A shared file in a folder the client can't see counts
+      # at the top in their view, where it's shown (placed_out_of_view?).
+      def direct_counts
+        @direct_counts ||= documents.each_with_object(Hash.new(0)) do |document, counts|
+          folder_id = document.media_placement&.folder_id
+          folder_id = nil if folder_id && folders.none? { it.id == folder_id }
+          counts[folder_id] += 1
+        end
+      end
+
       def all_documents
         works = client.works.select(:id)
         Document.where(documentable: client)
@@ -56,6 +73,8 @@ module Media
       end
 
       def subtree(folder)
+        return [ nil ] if folder.nil?
+
         found, frontier = [ folder ], [ folder ]
         while frontier.any?
           frontier = folders.select { |candidate| frontier.any? { candidate.parent_id == it.id } }

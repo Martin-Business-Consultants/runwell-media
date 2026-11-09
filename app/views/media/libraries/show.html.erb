@@ -2,30 +2,12 @@
 <%= parent_page "Media", media_libraries_path %>
 <% crumbs = @library.breadcrumbs(@folder) %>
 <% locked = @folder&.locked? || false %>
-<%# A client's library: its folders down the side, and the open folder's (or the top's) folders and
-    files, each file a tile. Files are the core's Documents wherever they're kept; what's added here
-    goes on the client. A locked folder keeps everything in it from the client's portal. %>
+<%# A client's library. Files are the core's Documents wherever they're kept; what's added here goes
+    on the client. A locked folder keeps everything in it from the client's portal. %>
+<%= render "media/libraries/nav", library: @library, current: @folder %>
+<%# The open folder's (or the top's) folders and files, beside the folders in the sidebar (_nav). A
+    file's tile opens its sheet; files drag onto a folder, here or in the sidebar, to move there. %>
 <div class="media-library">
-  <aside class="card media-library__side">
-    <h2 class="media-library__client"><%= link_to @client.name, @client %></h2>
-    <%= link_to media_library_path(@client), class: "media-tree__link media-tree__link--top", aria: { current: (@folder ? nil : "page") } do %>
-      <%= icon_tag "home" %><span class="media-tree__name">Top of the library</span>
-    <% end %>
-    <%= render "media/libraries/tree", library: @library, parent: nil, current: @folder %>
-    <details class="settings-fold media-library__new-folder">
-      <summary class="btn btn--secondary btn--sm"><%= icon_tag "add" %> New folder</summary>
-      <%= form_with url: media_folders_path(client_id: @client.id), scope: :folder, namespace: "new_media_folder", class: "settings-subform" do |form| %>
-        <%= form.hidden_field :parent_id, value: @folder&.id %>
-        <div class="field">
-          <%= form.label :name, "Name", class: "field__label" %>
-          <%= form.text_field :name, required: true, autocomplete: "off", placeholder: "Brand assets", maxlength: 80 %>
-          <p class="field__hint">Inside <%= @folder ? @folder.name : "the top of the library" %>. Open to the <%= term(:client).downcase %> until you lock it.</p>
-        </div>
-        <div><button type="submit" class="btn btn--primary btn--sm">Add folder</button></div>
-      <% end %>
-    </details>
-  </aside>
-
   <section class="media-library__main">
     <header class="media-library__head">
       <nav class="media-crumbs" aria-label="Folder">
@@ -84,11 +66,11 @@
         <% folders.each do |folder| %>
           <%# herb:key folder.id %>
           <li data-filter-target="item">
-            <%= link_to media_library_path(@client, folder: folder.id), class: "media-folder" do %>
+            <a href="<%= media_library_path(@client, folder: folder.id) %>" class="media-folder" data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="<%= folder.id %>" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
               <span class="media-folder__icon"><%= icon_tag(folder.hidden? ? "lock" : "grid") %></span>
               <span class="media-folder__name"><%= folder.name %></span>
-              <span class="media-folder__meta"><%= pluralize(@library.count_in(folder), "file") %><%= " · kept from the #{term(:client).downcase}" if folder.hidden? %></span>
-            <% end %>
+              <span class="media-folder__meta"><%= media_folder_summary(@library, folder) %><%= " · kept from the #{term(:client).downcase}" if folder.hidden? %></span>
+            </a>
           </li>
         <% end %>
       </ul>
@@ -103,3 +85,11 @@
     <% end %>
   </section>
 </div>
+
+<%# The file sheet: a file's tile loads it into the frame (Media::AssetsController#show) and the
+    media--sheet controller opens it; ?asset= on the address opens it on load. %>
+<% open_asset = @library.documents.find { it.id.to_s == params[:asset].to_s } if params[:asset].present? %>
+<dialog class="dialog sheet media-sheet-dialog" aria-label="File" data-controller="media--sheet"
+  data-action="turbo:frame-load->media--sheet#loaded click->media--sheet#backdrop close->media--sheet#closed">
+  <turbo-frame id="media_sheet" target="_top"<% if open_asset %> src="<%= media_asset_path(open_asset) %>"<% end %>></turbo-frame>
+</dialog>

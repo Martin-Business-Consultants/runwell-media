@@ -41,14 +41,17 @@
       <li class="media-file">
         <%= link_to media_file_url(document), class: "media-file__preview", target: "_blank", rel: "noopener" do %>
           <% if media_image?(document) %>
-            <img src="<%= media_file_url(document) %>" alt="" loading="lazy" class="media-file__image">
+            <img src="<%= media_file_url(document) %>" alt="<%= document.media_asset&.alt_text %>" loading="lazy" class="media-file__image">
           <% else %>
             <span class="media-file__type"><%= document.filename.extension&.downcase.presence || "file" %></span>
           <% end %>
         <% end %>
         <div class="media-file__body">
-          <%= link_to document.filename.to_s, media_file_url(document, download: true), class: "media-file__name", title: "Download #{document.filename}" %>
-          <p class="media-file__meta"><%= number_to_human_size(document.byte_size) %> · <%= l document.created_at.in_time_zone.to_date, format: :short %></p>
+          <%= link_to document.media_title, media_file_url(document, download: true), class: "media-file__name", title: "Download #{document.filename}" %>
+          <% if document.media_asset&.caption.present? %>
+            <p class="media-file__caption"><%= document.media_asset.caption %></p>
+          <% end %>
+          <p class="media-file__meta"><%= [ number_to_human_size(document.byte_size), l(document.created_at.in_time_zone.to_date, format: :short), document.media_asset&.credit ].compact.join(" · ") %></p>
         </div>
       </li>
     <% end %>

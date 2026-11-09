@@ -1,16 +1,15 @@
 <%# locals: (library:, parent:, current:) %>
-<%# The folders inside parent (nil: the top), each a link with its own inside it, the open one marked. %>
+<%# The folders inside parent (nil: the top), nested, each a link and a drop target, the open one
+    marked, with how many files sit right in it. %>
 <% folders = library.folders_in(parent) %>
 <% if folders.any? %>
-  <ul class="media-tree">
+  <ul class="<%= class_names("media-nav__list", "media-nav__list--nested": parent) %>">
     <% folders.each do |folder| %>
       <%# herb:key folder.id %>
       <li>
-        <%= link_to media_library_path(library.client, folder: folder.id), class: "media-tree__link", aria: { current: (current&.id == folder.id ? "page" : nil) } do %>
-          <%= icon_tag(folder.hidden? ? "lock" : "grid") %>
-          <span class="media-tree__name"><%= folder.name %></span>
-          <span class="media-tree__count"><%= library.count_in(folder) %></span>
-        <% end %>
+        <a href="<%= media_library_path(library.client, folder: folder.id) %>" class="media-nav__link"<% if current&.id == folder.id %> aria-current="page"<% end %><% if folder.hidden? %> title="Kept from the client"<% end %> data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="<%= folder.id %>" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
+          <%= icon_tag(folder.hidden? ? "lock" : "grid") %><span class="media-nav__name"><%= folder.name %></span><span class="media-nav__count"><%= library.count_in(folder) %></span>
+        </a>
         <%= render "media/libraries/tree", library: library, parent: folder, current: current %>
       </li>
     <% end %>

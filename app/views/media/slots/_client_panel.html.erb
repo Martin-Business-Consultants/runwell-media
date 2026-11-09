@@ -17,7 +17,7 @@
           <%= link_to media_library_path(client, folder: folder.id), class: "media-folder", data: { turbo_frame: "_top" } do %>
             <span class="media-folder__icon"><%= icon_tag(folder.hidden? ? "lock" : "grid") %></span>
             <span class="media-folder__name"><%= folder.name %></span>
-            <span class="media-folder__meta"><%= pluralize(library.count_in(folder), "file") %><%= " · kept from them" if folder.hidden? %></span>
+            <span class="media-folder__meta"><%= media_folder_summary(library, folder) %><%= " · kept from them" if folder.hidden? %></span>
           <% end %>
         </li>
       <% end %>

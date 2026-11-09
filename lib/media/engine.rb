@@ -14,6 +14,7 @@ module Media
             resource :lock, only: %i[create destroy], module: :folders
           end
           resources :uploads, only: :create
+          resources :assets, path: "files", only: %i[show update]
           resources :documents, only: [] do
             resource :move, only: :create, module: :documents
           end
