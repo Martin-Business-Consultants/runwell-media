@@ -5,8 +5,16 @@ client (on the client, its work, the work's sections and its tasks) shows in the
 where it can be put in folders, shared with the client or not, moved and deleted; files added in the
 library go on the client.
 
-- **Folders** in the sidebar, nested, each with how many files sit right in it: renamed, moved,
-  deleted once empty. Drag a file onto a folder (in the sidebar or a folder's tile) to move it.
+- **Every file at once**: the Media page shows each library as a folder and, under it, every file
+  across them, newest first. A search box at the top (file names, titles, alt text, captions; and
+  libraries by name) and a pill per kind of file (images, videos, audio, documents, other, with
+  counts) narrow it; in a library the same toolbar searches the whole library or filters the open
+  folder. Folders show as folder icons or as a list, files as tiles or rows: each person's choice,
+  remembered.
+- **Folders** in a sidebar on every Media page: every library as a drop-down, its folders nested
+  inside as drop-downs of their own, each with how many files it holds, opened down to the folder on
+  screen. Folders are renamed, moved, deleted once empty. Drag a file onto a folder of its library
+  (in the sidebar or a folder's tile) to move it.
 - **A sheet per file**: click a file and its sheet opens over the page (the address says which, so
   a link opens it too): a preview, its name (renaming the stored file), title, alt text, caption and
   credit, what it is and where it's kept, sharing, its folder, and deleting it.

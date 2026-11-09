@@ -1,0 +1,9 @@
+<%# locals: (documents:) %>
+<%# The file sheet: a file's tile loads it into the frame (Media::AssetsController#show) and the
+    media--sheet controller opens it; ?asset= on the address opens it on load (documents: the files
+    this page shows, the only ones it opens). %>
+<% open_asset = documents.find { it.id.to_s == params[:asset].to_s } if params[:asset].present? %>
+<dialog class="dialog sheet media-sheet-dialog" aria-label="File" data-controller="media--sheet"
+  data-action="turbo:frame-load->media--sheet#loaded click->media--sheet#backdrop close->media--sheet#closed">
+  <turbo-frame id="media_sheet" target="_top"<% if open_asset %> src="<%= media_asset_path(open_asset) %>"<% end %>></turbo-frame>
+</dialog>

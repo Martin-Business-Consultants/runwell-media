@@ -17,6 +17,41 @@ module Media
       record.is_a?(Client) ? record : (record.try(:client) || record.try(:work)&.client) || raise(ActiveRecord::RecordNotFound)
     end
 
+    # Every file in these clients' libraries, newest first, each with whose library it's in
+    # ([document, client] pairs): the Media page's files, read in one query, not one a library.
+    def self.across(clients)
+      by_id = clients.index_by(&:id)
+      owners = owners_of(by_id.keys)
+      documents_of(owners).recent
+        .includes(:documentable, :media_placement, :media_asset, file_attachment: :blob)
+        .filter_map { |document| (client = by_id[owners.dig(document.documentable_type, document.documentable_id)]) && [ document, client ] }
+    end
+
+    # How many files each of these clients' libraries holds ({ client_id => count }), without
+    # loading them.
+    def self.counts(clients)
+      owners = owners_of(clients.map(&:id))
+      documents_of(owners).pluck(:documentable_type, :documentable_id)
+        .filter_map { |type, id| owners.dig(type, id) }.tally
+    end
+
+    # What a file can be on, by type and id, mapped to whose library it's in.
+    def self.owners_of(client_ids)
+      works = Work.where(client_id: client_ids).pluck(:id, :client_id).to_h
+      items = ScopeItem.where(work_id: works.keys).pluck(:id, :work_id).to_h
+      {
+        "Client" => client_ids.to_h { [ it, it ] },
+        "Work" => works,
+        "ScopeItem" => items.transform_values { works[it] },
+        "Task" => Task.where(client_id: client_ids).pluck(:id, :client_id).to_h
+      }
+    end
+
+    def self.documents_of(owners)
+      owners.map { |type, ids| Document.where(documentable_type: type, documentable_id: ids.keys) }.reduce(:or)
+    end
+    private_class_method :owners_of, :documents_of
+
     def client_view? = @client_view
 
     # Every one of the client's files, newest first, with what it's on and its folder.
@@ -51,6 +86,12 @@ module Media
     def shown?(folder) = !@client_view || total_in(folder).positive?
 
     def breadcrumbs(folder) = folder ? chain(folder) : []
+
+    # The folder a file sits in (nil: the top), from the folders already read.
+    def folder_of(document) = folder(document.media_placement&.folder_id)
+
+    # Whether a file sits in a folder kept from the client, however far up the lock is.
+    def locked?(document) = (folder = folder_of(document)) ? locked_in?(folder, folders) : false
 
     private
       # Files per folder id (nil: the top). A shared file in a folder the client can't see counts

@@ -24,11 +24,7 @@
     <% folders.each do |folder| %>
       <%# herb:key folder.id %>
       <li>
-        <%= link_to media_portal_library_path(folder: folder.id), class: "media-folder" do %>
-          <span class="media-folder__icon"><%= icon_tag "grid" %></span>
-          <span class="media-folder__name"><%= folder.name %></span>
-          <span class="media-folder__meta"><%= pluralize(@library.count_in(folder), "file") %></span>
-        <% end %>
+        <%= render "media/libraries/folder", name: folder.name, path: media_portal_library_path(folder: folder.id), meta: pluralize(@library.count_in(folder), "file") %>
       </li>
     <% end %>
   </ul>

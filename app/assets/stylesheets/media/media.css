@@ -1,5 +1,5 @@
-/* Media: a client's library (folders down the side, the open folder's folders and files as
-/* tiles), its tab on the client, and the client's Library in the portal. Runwell's tokens only. */
+/* Media: every library and its files, a client's library (folders down the side, the open
+/* folder's folders and files as icons or a list), its tab on the client, and the client's Library in the portal. Runwell's tokens only. */
 @layer components {
   .media-library { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
   .media-library__main { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
@@ -10,8 +10,21 @@
   /* The folders in the sidebar (inside the core's section nav): nested lists, each folder a link
   /* with its count, and a drop target while a file is dragged. */
   .media-nav__list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
-  .media-nav__list--nested { margin-left: 1.1rem; padding: 2px 0 0 var(--s-2); border-left: 1px solid var(--line); }
-  .media-nav__link { display: flex; align-items: center; gap: 6px; min-height: var(--control-h); padding: 0 var(--s-3); border-radius: var(--radius-control); color: var(--text); text-decoration: none; cursor: pointer; }
+  .media-nav__list--nested { margin-left: 0.6rem; padding: 2px 0 0 var(--s-1); border-left: 1px solid var(--line); }
+  /* Each library, and each folder with folders inside, is a drop-down: the caret opens and closes
+  /* it, the link beside it opens the library or folder. */
+  .media-nav__branch > summary { list-style: none; }
+  .media-nav__branch > summary::-webkit-details-marker { display: none; }
+  .media-nav__summary { display: flex; align-items: center; gap: 2px; min-width: 0; }
+  .media-nav__summary .media-nav__link { flex: 1; min-width: 0; }
+  .media-nav__toggle { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 1.1rem; height: var(--control-h); border-radius: var(--radius-control); color: var(--text-faint); }
+  .media-nav__branch > summary .media-nav__toggle { cursor: pointer; }
+  .media-nav__branch > summary .media-nav__toggle:hover { background: var(--hover); color: var(--text); }
+  .media-nav__toggle .icon { width: 0.85rem; height: 0.85rem; transform: rotate(-90deg); transition: transform 120ms ease; }
+  .media-nav__branch[open] > summary .media-nav__toggle .icon { transform: none; }
+  .media-nav__branch > .media-nav__new { margin-left: 1.3rem; }
+  @media (prefers-reduced-motion: reduce) { .media-nav__toggle .icon { transition: none; } }
+  .media-nav__link { display: flex; align-items: center; gap: 6px; min-height: var(--control-h); padding: 0 var(--s-2); border-radius: var(--radius-control); color: var(--text); text-decoration: none; cursor: pointer; }
   .media-nav__link:hover { background: var(--hover); }
   .media-nav__link[aria-current="page"] { background: var(--brand-tint, var(--layer-2)); }
   .media-nav__link[aria-current="page"] .icon { color: var(--accent); }
@@ -21,7 +34,7 @@
   .media-nav__new > summary { list-style: none; color: var(--text-muted); }
   .media-nav__new > summary::-webkit-details-marker { display: none; }
   .media-nav__form { display: flex; flex-direction: column; gap: var(--s-2); padding: var(--s-2) var(--s-3); }
-  .media-dragging :is(.media-nav__link, .media-folder)[data-controller~="media--drop"] { outline: 1px dashed var(--line-strong); outline-offset: -1px; }
+  .media-drop--target { outline: 1px dashed var(--line-strong); outline-offset: -1px; }
   .media-drop--over, .media-dragging .media-drop--over { background: var(--brand-tint-strong, var(--brand-tint)) !important; outline: 2px solid var(--accent) !important; }
 
   .media-crumbs { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-1); font-size: var(--text-read); font-weight: var(--weight-strong); }
@@ -32,16 +45,57 @@
   .media-badge--locked { display: inline-flex; align-items: center; gap: 4px; }
   .media-badge--locked .icon { width: .75rem; height: .75rem; }
 
+  /* The toolbar: the search across the page, then a pill per kind of file and icons or list. The
+  /* results under it are a frame (search redraws only it). */
+  .media-search { display: flex; align-items: center; gap: var(--s-2); min-height: var(--control-h); padding: 0 var(--s-3); border: 1px solid var(--line-strong); border-radius: var(--radius-control); background: var(--panel); }
+  .media-search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .media-search > .icon { color: var(--text-muted); }
+  .media-search__input { flex: 1; min-width: 0; height: calc(var(--control-h) - 2px); padding: 0; border: 0; background: none; box-shadow: none; color: var(--text); font: inherit; outline: none; }
+  .media-search__input:focus { border: 0; box-shadow: none; outline: none; }
+  .media-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); }
+  .media-toolbar__kinds { flex-wrap: wrap; }
+  .media-toolbar .tabs__tab .icon { width: 1rem; height: 1rem; }
+  .media-results { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
+  .media-section { display: flex; flex-direction: column; gap: var(--s-3); min-width: 0; }
+  .media-section__title { margin: 0; color: var(--text-muted); font-size: var(--text-meta); font-weight: var(--weight-strong); }
+  .media-section__more { margin: 0; color: var(--text-muted); font-size: var(--text-meta); }
+
   .media-folders, .media-files { display: grid; gap: var(--s-3); margin: 0; padding: 0; list-style: none; }
-  .media-folders { grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr)); }
+  .media-folders { grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr)); gap: var(--s-2); }
   .media-files { grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr)); }
   .record-card .media-folders { padding: 0; }
 
-  .media-folder { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: var(--s-2); align-items: center; padding: var(--s-3); border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); color: var(--text); text-decoration: none; }
-  .media-folder:hover { border-color: var(--line-strong); background: var(--hover); }
-  .media-folder__icon { grid-row: span 2; display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius); background: var(--layer-1); color: var(--text-muted); }
-  .media-folder__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: var(--weight-strong); }
-  .media-folder__meta { color: var(--text-muted); font-size: var(--text-meta); }
+  /* A folder as an icon (a folder, a lock on it when it's kept from the client), its name under it;
+  /* in a list (.media-folders--list), a row. */
+  .media-folder { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 0; padding: var(--s-3) var(--s-2); border: 1px solid transparent; border-radius: var(--radius-lg); color: var(--text); text-align: center; text-decoration: none; }
+  .media-folder:hover { background: var(--hover); }
+  .media-folder:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .media-folder__icon { position: relative; display: grid; place-items: center; margin-bottom: var(--s-1); color: var(--accent); }
+  .media-folder__icon .media-icon--folder { width: 3.5rem; height: 3.5rem; fill: var(--accent-soft); stroke-width: 1; }
+  .media-folder__mark { position: absolute; right: -2px; bottom: 2px; display: grid; place-items: center; width: 1.25rem; height: 1.25rem; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--panel); color: var(--text-muted); }
+  .media-folder__mark .icon { width: .75rem; height: .75rem; }
+  .media-folder__name { max-width: 100%; overflow: hidden; font-weight: var(--weight-strong); text-overflow: ellipsis; white-space: nowrap; }
+  .media-folder__meta { max-width: 100%; overflow: hidden; color: var(--text-muted); font-size: var(--text-meta); text-overflow: ellipsis; white-space: nowrap; }
+
+  .media-folders--list { grid-template-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); overflow: hidden; }
+  .media-folders--list > li + li { border-top: 1px solid var(--line); }
+  .media-folders--list .media-folder { flex-direction: row; gap: var(--s-3); padding: var(--s-2) var(--s-3); border: 0; border-radius: 0; text-align: left; }
+  .media-folders--list .media-folder__icon { margin: 0; }
+  .media-folders--list .media-folder__icon .media-icon--folder { width: 1.5rem; height: 1.5rem; stroke-width: 1.4; }
+  .media-folders--list .media-folder__mark { right: -6px; bottom: -4px; width: 1rem; height: 1rem; }
+  .media-folders--list .media-folder__mark .icon { width: .625rem; height: .625rem; }
+  .media-folders--list .media-folder__name { flex: 1; }
+
+  /* Files in a list: a row each, a small preview at its start. */
+  .media-files--list { grid-template-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); overflow: hidden; }
+  .media-files--list .media-file { flex-direction: row; align-items: center; border: 0; border-radius: 0; }
+  .media-files--list .media-file + .media-file { border-top: 1px solid var(--line); }
+  .media-files--list .media-file:hover { background: var(--hover); }
+  .media-files--list .media-file__open { flex: 1; flex-direction: row; align-items: center; gap: var(--s-3); min-width: 0; padding: var(--s-2) var(--s-3); }
+  .media-files--list .media-file__preview { flex: none; width: 2.5rem; height: 2.5rem; aspect-ratio: auto; overflow: hidden; border-radius: var(--radius); }
+  .media-files--list .media-file__type { padding: 0 4px; font-size: var(--text-xs); }
+  .media-files--list .media-file__body { flex: 1; padding: 0; }
+  .media-files--list .media-file__badges { position: static; padding-right: var(--s-3); }
 
   .media-file { position: relative; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--panel); cursor: grab; }
   .media-file:hover { border-color: var(--line-strong); }
@@ -80,7 +134,4 @@
   .media-sheet__section { display: flex; flex-direction: column; gap: var(--s-2); padding-top: var(--s-3); border-top: 1px solid var(--line); }
   .media-sheet__heading { margin: 0; color: var(--text-muted); font-size: var(--text-meta); font-weight: var(--weight-strong); }
   .media-sheet__facts { font-size: var(--text-meta); }
-
-  .media-clients__row { color: var(--text); }
-  .media-clients__icon { display: grid; place-items: center; width: 2rem; height: 2rem; border-radius: var(--radius); background: var(--layer-1); color: var(--text-muted); }
 }

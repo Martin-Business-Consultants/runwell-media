@@ -1,0 +1,11 @@
+<%# locals: (shelf:, client:, folder:, current:) %>
+<%# A folder's link in the sidebar: a drop target for its library's files, marked when it's open,
+    with how many files sit right in it. %>
+<a href="<%= media_library_path(client, folder: folder.id) %>" class="media-nav__link"<% if current&.id == folder.id %> aria-current="page"<% end %><% if shelf.locked?(folder) %> title="Kept from the client"<% end %> data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="<%= folder.id %>" data-media--drop-client-value="<%= client.id %>" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
+  <% if shelf.locked?(folder) %>
+    <%= icon_tag "lock" %>
+  <% else %>
+    <%= media_icon :folder %>
+  <% end %>
+  <span class="media-nav__name"><%= folder.name %></span><span class="media-nav__count"><%= shelf.count_in(client, folder) %></span>
+</a>

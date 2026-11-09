@@ -1,0 +1,17 @@
+<%# locals: (name:, path:, meta:, locked: false, drop: nil, client_id: nil, home: false, frame: nil) %>
+<%# A folder, drawn as one: a folder icon (with a lock when it's kept from the client; a house for
+    the business's own library), its name and what's in it. The list it sits in says icons or rows
+    (.media-folders--list). drop: the folder's id ("" for the top) makes it a drop target, so a file
+    dragged onto it moves there (media--drop), if it's from the same library (client_id); nil leaves
+    it a plain link. %>
+<% drop_data = drop.nil? ? {} : { controller: "media--drop", media__drop_url_value: media_document_move_path("__id__"), media__drop_folder_value: drop, media__drop_client_value: client_id, action: "dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop" } %>
+<%= link_to path, class: "media-folder", title: name, data: drop_data.merge(turbo_frame: frame).compact do %>
+  <span class="media-folder__icon">
+    <%= media_icon :folder %>
+    <% if locked || home %>
+      <span class="media-folder__mark"><%= icon_tag(locked ? "lock" : "home") %></span>
+    <% end %>
+  </span>
+  <span class="media-folder__name"><%= name %></span>
+  <span class="media-folder__meta"><%= meta %></span>
+<% end %>

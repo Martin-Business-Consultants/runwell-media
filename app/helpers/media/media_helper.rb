@@ -25,6 +25,23 @@ module Media
       [ pluralize(library.count_in(folder), "file"), (pluralize(library.folders_in(folder).size, "folder") if library.folders_in(folder).any?) ].compact.join(" · ")
     end
 
+    # The plugin's own icons, drawn as the core's are (16×16, stroked in currentColor): the core
+    # has no folder or list among them.
+    MEDIA_ICONS = {
+      folder: '<path d="M1.75 4.25a1 1 0 0 1 1-1h3.4l1.5 1.5h5.6a1 1 0 0 1 1 1v6.5a1 1 0 0 1-1 1H2.75a1 1 0 0 1-1-1z"/>',
+      list: '<path d="M5.5 4h8M5.5 8h8M5.5 12h8M2.5 4h.5M2.5 8h.5M2.5 12h.5"/>'
+    }.freeze
+
+    def media_icon(name, css: nil)
+      tag.svg(MEDIA_ICONS.fetch(name).html_safe, class: [ "icon", "media-icon--#{name}", css ], viewBox: "0 0 16 16", aria: { hidden: true })
+    end
+
+    # A toolbar link: the page's path with these params (blank ones dropped).
+    def media_toolbar_path(path, params)
+      query = params.compact_blank.to_query
+      query.empty? ? path : "#{path}?#{query}"
+    end
+
     def media_file_url(document, download: false)
       rails_blob_path(document.file, disposition: download ? :attachment : :inline)
     end

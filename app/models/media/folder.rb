@@ -49,9 +49,10 @@ module Media
       ids
     end
 
-    # The folders of a client's library kept from them, by themselves or a folder above.
-    def self.locked_ids(client_id)
-      folders = where(client_id: client_id).index_by(&:id)
+    # The folders kept from their client, by themselves or a folder above, in one client's library
+    # or several (an id or a list).
+    def self.locked_ids(client_ids)
+      folders = where(client_id: client_ids).index_by(&:id)
       folders.values.select { |folder|
         current, depth = folder, 0
         current, depth = folders[current.parent_id], depth + 1 until current.nil? || current.hidden? || depth > 50

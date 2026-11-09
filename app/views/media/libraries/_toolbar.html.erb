@@ -1,0 +1,28 @@
+<%# locals: (filter:, counts:, url:, keep: {}) %>
+<%# Under the search: a pill per kind of file with how many match the search (empty ones drop out,
+    but never All or the one chosen), and icons or list for the folders and files (remembered). Each
+    is a link swapping one param, so it's bookmarkable, Back works and an agent gets the same with
+    ?kind=. keep: params the page's address carries (its folder). %>
+<div class="media-toolbar">
+  <% shown = Media::Filter::KINDS.select { |key, _| key == filter.kind || counts.fetch(key, 0).positive? } %>
+  <nav class="tabs tabs--pills media-toolbar__kinds" aria-label="Kind of file">
+    <%= link_to media_toolbar_path(url, keep.merge(filter.params(kind: nil))), class: "tabs__tab", aria: { current: filter.kind.nil? ? "page" : "false" }, data: { turbo_action: "replace" } do %>
+      <span>All</span><span class="count count--quiet"><%= counts.fetch("", 0) %></span>
+    <% end %>
+    <% shown.each do |key, label| %>
+      <%# herb:key key %>
+      <%= link_to media_toolbar_path(url, keep.merge(filter.params(kind: key))), class: "tabs__tab", aria: { current: filter.kind == key ? "page" : "false" }, data: { turbo_action: "replace" } do %>
+        <span><%= label %></span><span class="count count--quiet"><%= counts.fetch(key, 0) %></span>
+      <% end %>
+    <% end %>
+  </nav>
+
+  <nav class="tabs tabs--icons media-toolbar__view" aria-label="View">
+    <%= link_to media_toolbar_path(url, keep.merge(filter.params(view: "grid"))), class: "tabs__tab", title: "Icons", aria: { label: "Icons", current: filter.list? ? "false" : "page" }, data: { turbo_action: "replace" } do %>
+      <%= icon_tag "grid" %>
+    <% end %>
+    <%= link_to media_toolbar_path(url, keep.merge(filter.params(view: "list"))), class: "tabs__tab", title: "List", aria: { label: "List", current: filter.list? ? "page" : "false" }, data: { turbo_action: "replace" } do %>
+      <%= media_icon :list %>
+    <% end %>
+  </nav>
+</div>

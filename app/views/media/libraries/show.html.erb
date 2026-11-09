@@ -4,7 +4,7 @@
 <% locked = @folder&.locked? || false %>
 <%# A client's library. Files are the core's Documents wherever they're kept; what's added here goes
     on the client. A locked folder keeps everything in it from the client's portal. %>
-<%= render "media/libraries/nav", library: @library, current: @folder %>
+<%= render "media/libraries/nav", shelf: @shelf, client: @client, folder: @folder %>
 <%# The open folder's (or the top's) folders and files, beside the folders in the sidebar (_nav). A
     file's tile opens its sheet; files drag onto a folder, here or in the sidebar, to move there. %>
 <div class="media-library">
@@ -52,6 +52,10 @@
       <% end %>
     </header>
 
+    <%= render "media/libraries/search", filter: @filter, url: media_library_path(@client), keep: { folder: @folder&.id }, placeholder: "Search #{@client.name}’s files" %>
+    <turbo-frame id="media_results" class="media-results" target="_top">
+    <%= render "media/libraries/toolbar", filter: @filter, counts: @kind_counts, url: media_library_path(@client), keep: { folder: @folder&.id } %>
+
     <%# Files go straight to storage, then into this folder (or the top), on the client, internal. %>
     <%= form_with url: media_uploads_path, multipart: true, namespace: "media_upload", class: "document-drop", data: document_upload_data.merge(turbo_action: "advance") do |form| %>
       <%= hidden_field_tag :client_id, @client.id, id: nil %>
@@ -59,37 +63,39 @@
       <%= document_drop_target form %>
     <% end %>
 
-    <% folders = @library.folders_in(@folder) %>
-    <% files = @library.documents_in(@folder) %>
-    <% if folders.any? %>
-      <ul class="media-folders">
-        <% folders.each do |folder| %>
+    <%# Searching looks through the whole library: its folders by name, its files wherever they sit
+        (each saying which folder). Otherwise it's the open folder's folders and files. A kind of
+        file narrows the files and puts the folders away. %>
+    <% if @filter.searching? %>
+      <p class="media-section__more">Searching all of <%= @client.name %>’s library. <%= link_to "Clear", media_library_path(@client, folder: @folder&.id) %></p>
+    <% end %>
+    <% if @folders.any? && @filter.kind.nil? %>
+      <ul class="<%= class_names("media-folders", "media-folders--list": @filter.list?) %>">
+        <% @folders.each do |folder| %>
           <%# herb:key folder.id %>
           <li data-filter-target="item">
-            <a href="<%= media_library_path(@client, folder: folder.id) %>" class="media-folder" data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="<%= folder.id %>" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
-              <span class="media-folder__icon"><%= icon_tag(folder.hidden? ? "lock" : "grid") %></span>
-              <span class="media-folder__name"><%= folder.name %></span>
-              <span class="media-folder__meta"><%= media_folder_summary(@library, folder) %><%= " · kept from the #{term(:client).downcase}" if folder.hidden? %></span>
-            </a>
+            <%= render "media/libraries/folder", name: folder.name, path: media_library_path(@client, folder: folder.id), drop: folder.id, client_id: @client.id, locked: folder.hidden?,
+                  meta: "#{media_folder_summary(@library, folder)}#{" · kept from the #{term(:client).downcase}" if folder.hidden?}" %>
           </li>
         <% end %>
       </ul>
     <% end %>
 
-    <% if files.any? %>
-      <ul class="media-files">
-        <%= render partial: "media/libraries/file", collection: files, as: :document, locals: { library: @library, locked: locked } %>
+    <% if @files.any? %>
+      <ul class="<%= class_names("media-files", "media-files--list": @filter.list?) %>">
+        <% @files.each do |document| %>
+          <%# herb:key document.id %>
+          <% folder = @library.folder_of(document) if @filter.searching? %>
+          <%= render "media/libraries/file", document: document, client_id: @client.id, locked: @library.locked?(document), place: (folder ? "In #{@library.breadcrumbs(folder).map(&:name).join(" / ")}" : ("At the top" if @filter.searching?)) %>
+        <% end %>
       </ul>
-    <% elsif folders.none? %>
+    <% elsif @filter.narrowed? %>
+      <%= render "layouts/shared/empty", text: "No files match. Try another search or kind.", action_text: "Show everything", action_path: media_library_path(@client, folder: @folder&.id) %>
+    <% elsif @folders.none? %>
       <%= render "layouts/shared/empty", text: (@folder ? "Nothing in #{@folder.name} yet: drop files above." : "No files yet: drop some above, or add them on a #{term(:work).downcase} or #{term(:task).downcase}.") %>
     <% end %>
+    </turbo-frame>
   </section>
 </div>
 
-<%# The file sheet: a file's tile loads it into the frame (Media::AssetsController#show) and the
-    media--sheet controller opens it; ?asset= on the address opens it on load. %>
-<% open_asset = @library.documents.find { it.id.to_s == params[:asset].to_s } if params[:asset].present? %>
-<dialog class="dialog sheet media-sheet-dialog" aria-label="File" data-controller="media--sheet"
-  data-action="turbo:frame-load->media--sheet#loaded click->media--sheet#backdrop close->media--sheet#closed">
-  <turbo-frame id="media_sheet" target="_top"<% if open_asset %> src="<%= media_asset_path(open_asset) %>"<% end %>></turbo-frame>
-</dialog>
+<%= render "media/libraries/sheet", documents: @library.documents %>

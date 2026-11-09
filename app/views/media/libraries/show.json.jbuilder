@@ -1,4 +1,6 @@
-json.summary "#{@client.name}’s library#{": #{@folder.path}" if @folder}: #{@library.folders_in(@folder).size} folders, #{@library.documents_in(@folder).size} files here"
+json.summary "#{@client.name}’s library#{": #{@folder.path}" if @folder}#{" searched for “#{@filter.query}”" if @filter.searching?}: #{@folders.size} #{"folder".pluralize(@folders.size)}, #{@files.size} #{"file".pluralize(@files.size)}#{" (#{Media::Filter::KINDS[@filter.kind].downcase})" if @filter.kind}#{" here" unless @filter.searching?}"
+json.query @filter.query
+json.kind @filter.kind
 json.client agent_ref(@client)
 if @folder
   json.folder do
@@ -8,15 +10,17 @@ if @folder
     json.kept_from_client @folder.hidden?
   end
 end
-json.folders @library.folders_in(@folder) do |folder|
+json.folders @folders do |folder|
   json.extract! folder, :id, :name
   json.kept_from_client folder.hidden?
   json.files @library.count_in(folder)
 end
-json.files @library.documents_in(@folder) do |document|
+json.files @files do |document|
   json.document_id document.id
   json.filename document.filename.to_s
   json.content_type document.content_type
+  json.kind Media::Filter.kind_of(document)
+  json.folder_id document.media_placement&.folder_id
   json.byte_size document.byte_size
   json.client_visible document.client_visible
   json.kept_on agent_ref(document.documentable)

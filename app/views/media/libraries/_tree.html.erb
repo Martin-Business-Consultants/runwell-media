@@ -1,16 +1,26 @@
-<%# locals: (library:, parent:, current:) %>
-<%# The folders inside parent (nil: the top), nested, each a link and a drop target, the open one
-    marked, with how many files sit right in it. %>
-<% folders = library.folders_in(parent) %>
+<%# locals: (shelf:, client:, parent:, current:, open_ids:) %>
+<%# The folders inside parent (nil: the library's top), nested. One with folders inside is a
+    drop-down, open when the folder on screen is in it; one without is a plain row. %>
+<% folders = shelf.folders_in(client, parent) %>
 <% if folders.any? %>
-  <ul class="<%= class_names("media-nav__list", "media-nav__list--nested": parent) %>">
+  <ul class="media-nav__list media-nav__list--nested">
     <% folders.each do |folder| %>
       <%# herb:key folder.id %>
       <li>
-        <a href="<%= media_library_path(library.client, folder: folder.id) %>" class="media-nav__link"<% if current&.id == folder.id %> aria-current="page"<% end %><% if folder.hidden? %> title="Kept from the client"<% end %> data-controller="media--drop" data-media--drop-url-value="<%= media_document_move_path("__id__") %>" data-media--drop-folder-value="<%= folder.id %>" data-action="dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop">
-          <%= icon_tag(folder.hidden? ? "lock" : "grid") %><span class="media-nav__name"><%= folder.name %></span><span class="media-nav__count"><%= library.count_in(folder) %></span>
-        </a>
-        <%= render "media/libraries/tree", library: library, parent: folder, current: current %>
+        <% if shelf.folders_in(client, folder).any? %>
+          <details class="media-nav__branch"<% if open_ids.include?(folder.id) %> open<% end %>>
+            <summary class="media-nav__summary">
+              <span class="media-nav__toggle" aria-hidden="true"><%= icon_tag "caret-down" %></span>
+              <%= render "media/libraries/nav_folder", shelf: shelf, client: client, folder: folder, current: current %>
+            </summary>
+            <%= render "media/libraries/tree", shelf: shelf, client: client, parent: folder, current: current, open_ids: open_ids %>
+          </details>
+        <% else %>
+          <div class="media-nav__summary">
+            <span class="media-nav__toggle" aria-hidden="true"></span>
+            <%= render "media/libraries/nav_folder", shelf: shelf, client: client, folder: folder, current: current %>
+          </div>
+        <% end %>
       </li>
     <% end %>
   </ul>
