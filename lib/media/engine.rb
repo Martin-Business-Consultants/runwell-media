@@ -38,7 +38,13 @@ module Media
         description: "A library of each client's files and media, in folders: everything already kept on the client, its work and tasks, arranged and shared from one place. Folders can be kept from the client, so nothing in them reaches the portal; clients browse what's shared in a Library page of their portal."
       Runwell::Plugins.nav :media, "Media", -> { media_libraries_path }, icon: "picture-add"
       Runwell::Plugins.slot :client_panel, :media, "media/slots/client_panel"
-      Runwell::Plugins.portal_nav :media, "Library", -> { media_portal_library_path }
+      # In the portal the library is the client's Documents, standing in for the core's flat list
+      # (Runwell 5.13); an older core keeps its Documents and gets a Library beside it.
+      if Runwell::Plugins.method(:portal_nav).parameters.any? { it.last == :replaces }
+        Runwell::Plugins.portal_nav :media, "Documents", -> { media_portal_library_path }, replaces: :documents
+      else
+        Runwell::Plugins.portal_nav :media, "Library", -> { media_portal_library_path }
+      end
       Runwell::Plugins.stylesheet :media, "media/media"
     end
   end

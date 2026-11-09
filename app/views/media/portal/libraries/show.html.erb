@@ -1,4 +1,4 @@
-<% @page_title = @folder ? @folder.name : "Library" %>
+<% @page_title = @folder ? @folder.name : media_portal_name %>
 <% crumbs = @library.breadcrumbs(@folder) %>
 <% content_for :header do %>
   <h1 class="portal-page-header__title"><%= @page_title %></h1>
@@ -8,7 +8,7 @@
 <%# What's shared with the client, in the folders not kept from them (Media::Library.for_client). %>
 <% if @folder %>
   <nav class="media-crumbs" aria-label="Folder">
-    <%= link_to "Library", media_portal_library_path, class: "media-crumbs__link" %>
+    <%= link_to media_portal_name, media_portal_library_path, class: "media-crumbs__link" %>
     <% crumbs.each do |crumb| %>
       <%# herb:key crumb.id %>
       <span class="media-crumbs__sep" aria-hidden="true">/</span>

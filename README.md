@@ -23,7 +23,8 @@ library go on the client.
   portal. Files shared there are unshared (and remembered: unlocking shares them again), and none
   can be shared while it's locked, wherever the switch is flipped (the rule is on the core's
   Document, through its load hook), so a locked folder never leaks.
-- **Portal**: a Library page in the client's portal, the shared files in their folders.
+- **Portal**: the client's Documents become the library: the files shared with them, in their
+  folders (Runwell 5.13 or later; on an older core it's a Library page beside Documents).
 - **Agents**: `list_media_libraries`, `show_media_library`, `create_media_folder`,
   `update_media_folder`, `delete_media_folder`, `lock_media_folder`, `unlock_media_folder`,
   `upload_media_files`, `move_media_file`, `show_media_file`, `update_media_file`, and

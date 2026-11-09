@@ -6,6 +6,9 @@ module Media
     VIDEO_TYPES = %r{\Avideo/(mp4|webm|ogg|quicktime)\z}
     AUDIO_TYPES = %r{\Aaudio/(mpeg|mp3|mp4|aac|ogg|wav|x-wav|webm|flac|x-m4a)\z}
 
+    # What the portal calls the library: Documents where it stands in for the core's (Runwell 5.13).
+    def media_portal_name = Runwell::Plugins.respond_to?(:portal_replacement) && Runwell::Plugins.portal_replacement(:documents) ? "Documents" : "Library"
+
     def media_image?(document) = document.content_type.to_s.match?(IMAGE_TYPES)
 
     # How a file's sheet previews it: :image, :pdf, :video, :audio, or nil (its type, as a card).
