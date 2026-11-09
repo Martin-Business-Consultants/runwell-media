@@ -3,7 +3,7 @@ module Media
   class FoldersController < ApplicationController
     allow_staff
     agent_tool :create_media_folder, on: :create, title: "Add a folder to a client's media library",
-      description: "parent_id: the folder it goes in (blank: the top). New folders are open to the client; lock_media_folder keeps one from them.",
+      description: "parent_id: the folder it goes in (blank: the top). New folders start kept from the client (locked): nothing in them reaches the client's portal until unlock_media_folder opens one to them.",
       params: { client_id: "integer!", folder: { name: "string!", parent_id: "integer" } }
     agent_tool :update_media_folder, on: :update, title: "Rename or move a media folder",
       description: "parent_id moves it into another folder of the same library (blank: the top).",
@@ -16,7 +16,7 @@ module Media
       folder = client.media_folders.new(folder_params.merge(created_by: Current.user))
       if folder.save
         client.record_event!("media.folder_created", payload: { folder: folder.path })
-        redirect_to media_library_path(client, folder: folder.id), notice: "#{folder.name} added."
+        redirect_to media_library_path(client, folder: folder.id), notice: "#{folder.name} added, kept from the #{helpers.term(:client).downcase} until you open it to them."
       else
         redirect_back fallback_location: media_library_path(client), alert: folder.errors.full_messages.to_sentence
       end

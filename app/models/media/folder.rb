@@ -1,5 +1,6 @@
 module Media
-  # A folder in a client's library, inside another or at the top. Kept from the client (hidden):
+  # A folder in a client's library, inside another or at the top. Kept from the client (hidden),
+  # as every new one starts, so nothing reaches the portal until someone opens a folder to them:
   # it and everything under it is staff only. Its files can't be shared while it is (the rule is on
   # Document, Media::Sharing), and locking it unshares those that were, remembering them, so
   # unlocking shares them again. A folder is deleted only when nothing is in it.
@@ -14,6 +15,8 @@ module Media
     belongs_to :created_by, class_name: "User", optional: true
     has_many :children, class_name: "Media::Folder", foreign_key: :parent_id, inverse_of: :parent, dependent: :restrict_with_error
     has_many :placements, class_name: "Media::Placement", dependent: :restrict_with_error
+
+    attribute :hidden, :boolean, default: true
 
     normalizes :name, with: ->(name) { name.to_s.squish }
     validates :name, presence: true, length: { maximum: 80 }

@@ -13,7 +13,7 @@ module Media
       files = Array(params.dig(:document, :files)).compact_blank
       return redirect_back(fallback_location: media_library_path(client), alert: "Choose a file to upload.") if files.empty?
 
-      documents = files.map { client.documents.new(file: it, uploaded_by: Current.user) }
+      documents = files.map { client.documents.new(file: it, uploaded_by: Current.user, client_visible: false) }
       if (refused = documents.find(&:invalid?))
         return redirect_back fallback_location: media_library_path(client), alert: "#{refused.filename} #{refused.errors[:file].to_sentence}."
       end

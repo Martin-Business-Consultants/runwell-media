@@ -1,8 +1,22 @@
 module Media
   module MediaHelper
-    IMAGE_TYPES = %r{\Aimage/(png|jpeg|gif|webp|avif)\z}
+    # What a browser can show in place: images (not SVG, which Active Storage serves as a download),
+    # PDFs, video and audio.
+    IMAGE_TYPES = %r{\Aimage/(png|jpeg|pjpeg|gif|webp|avif|bmp|x-icon|vnd\.microsoft\.icon|apng)\z}
+    VIDEO_TYPES = %r{\Avideo/(mp4|webm|ogg|quicktime)\z}
+    AUDIO_TYPES = %r{\Aaudio/(mpeg|mp3|mp4|aac|ogg|wav|x-wav|webm|flac|x-m4a)\z}
 
     def media_image?(document) = document.content_type.to_s.match?(IMAGE_TYPES)
+
+    # How a file's sheet previews it: :image, :pdf, :video, :audio, or nil (its type, as a card).
+    def media_preview(document)
+      type = document.content_type.to_s
+      if type.match?(IMAGE_TYPES) then :image
+      elsif type == "application/pdf" then :pdf
+      elsif type.match?(VIDEO_TYPES) then :video
+      elsif type.match?(AUDIO_TYPES) then :audio
+      end
+    end
 
     # Where a file is kept, when it isn't on the client itself: "On Website rebuild".
     def media_origin(document)

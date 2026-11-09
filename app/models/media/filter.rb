@@ -1,11 +1,11 @@
 module Media
   # What the library's toolbar asks for: a search (q), one kind of file (kind: images, videos,
-  # audio, documents or other; blank for all) and how folders and files are drawn (view: grid or
-  # list). Applied to files already loaded (a library's, or every library's), in memory, as the
+  # audio, documents or other; blank for all) and how folders and files are drawn (view: list, the
+  # default, or grid). Applied to files already loaded (a library's, or every library's), in memory, as the
   # library itself works.
   class Filter
     KINDS = { "image" => "Images", "video" => "Videos", "audio" => "Audio", "document" => "Documents", "other" => "Other" }.freeze
-    VIEWS = %w[grid list].freeze
+    VIEWS = %w[list grid].freeze
     DOCUMENT_TYPES = %r{\A(text/|application/(pdf|msword|rtf|vnd\.ms-|vnd\.openxmlformats|vnd\.oasis\.opendocument|vnd\.apple\.))}
 
     attr_reader :query, :kind, :view
@@ -13,7 +13,7 @@ module Media
     def initialize(query: nil, kind: nil, view: nil)
       @query = query.to_s.squish.presence
       @kind = kind.to_s.presence_in(KINDS.keys)
-      @view = view.to_s.presence_in(VIEWS) || "grid"
+      @view = view.to_s.presence_in(VIEWS) || "list"
     end
 
     def self.kind_of(document)

@@ -12,13 +12,25 @@
       <button type="button" class="icon-button" data-action="media--sheet#close" aria-label="Close"><%= icon_tag "close" %></button>
     </header>
 
-    <a href="<%= media_file_url(@document) %>" class="media-sheet__preview" target="_blank" rel="noopener" title="Open the file">
-      <% if media_image?(@document) %>
-        <img src="<%= media_file_url(@document) %>" alt="<%= asset.alt_text %>" class="media-sheet__image">
+    <% preview = media_preview(@document) %>
+    <div class="<%= class_names("media-sheet__preview", "media-sheet__preview--#{preview || "file"}") %>">
+      <% if preview == :image %>
+        <a href="<%= media_file_url(@document) %>" target="_blank" rel="noopener" title="Open the file" class="media-sheet__image-link">
+          <img src="<%= media_file_url(@document) %>" alt="<%= asset.alt_text %>" class="media-sheet__image">
+        </a>
+      <% elsif preview == :pdf %>
+        <iframe src="<%= media_file_url(@document) %>" title="<%= @document.media_title %>" class="media-sheet__frame"></iframe>
+      <% elsif preview == :video %>
+        <video src="<%= media_file_url(@document) %>" controls preload="metadata" class="media-sheet__video"></video>
+      <% elsif preview == :audio %>
+        <audio src="<%= media_file_url(@document) %>" controls preload="metadata" class="media-sheet__audio"></audio>
       <% else %>
-        <span class="media-file__type"><%= @document.filename.extension&.downcase.presence || "file" %></span>
+        <a href="<%= media_file_url(@document) %>" target="_blank" rel="noopener" title="Open the file" class="media-sheet__card">
+          <span class="media-file__type"><%= @document.filename.extension&.downcase.presence || "file" %></span>
+          <span class="muted small">No preview for this kind of file: open or download it.</span>
+        </a>
       <% end %>
-    </a>
+    </div>
     <div class="button-row">
       <%= link_to media_file_url(@document, download: true), class: "btn btn--secondary btn--sm", data: { turbo: false } do %><%= icon_tag "install-edge" %> Download<% end %>
       <%= link_to media_file_url(@document), class: "btn btn--ghost btn--sm", target: "_blank", rel: "noopener", data: { turbo: false } do %><%= icon_tag "arrow-up-right" %> Open<% end %>

@@ -1,28 +1,12 @@
 <% @page_title = "Media" %>
-<%# Every file in every active client's library, under a search, a pill per kind of file and grid
-    or list; above them, each library as a folder (the business's own first), opened to browse its
-    folders. A search finds libraries by name and files by name, title, alt text or caption. %>
+<%# Every file in every active client's library, under a search, a pill per kind of file and list
+    or grid; the libraries and their folders are in the sidebar. A search finds files by name,
+    title, alt text or caption. %>
 <%= render "media/libraries/nav", shelf: @shelf %>
 <div class="media-library">
   <%= render "media/libraries/search", filter: @filter, url: media_libraries_path, placeholder: "Search every #{term(:client).downcase}’s files" %>
   <turbo-frame id="media_results" class="media-results" target="_top">
   <%= render "media/libraries/toolbar", filter: @filter, counts: @kind_counts, url: media_libraries_path %>
-
-  <% if @libraries.any? && @filter.kind.nil? %>
-    <section class="media-section" aria-labelledby="media_libraries_heading">
-      <h2 class="media-section__title" id="media_libraries_heading">Libraries</h2>
-      <ul class="<%= class_names("media-folders", "media-folders--list": @filter.list?) %>">
-        <% @libraries.each do |client| %>
-          <%# herb:key client.id %>
-          <li data-filter-target="item">
-            <% files, folders = @file_counts.fetch(client.id, 0), @folder_counts.fetch(client.id, 0) %>
-            <%= render "media/libraries/folder", name: client.name, path: media_library_path(client), home: client.internal?,
-                  meta: [ pluralize(files, "file"), (pluralize(folders, "folder") if folders.positive?), ("your own" if client.internal?) ].compact.join(" · ") %>
-          </li>
-        <% end %>
-      </ul>
-    </section>
-  <% end %>
 
   <section class="media-section" aria-labelledby="media_files_heading">
     <h2 class="media-section__title" id="media_files_heading">
