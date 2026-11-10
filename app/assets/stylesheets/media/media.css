@@ -1,8 +1,12 @@
 /* Media: every library and its files, a client's library (folders down the side, the open
 /* folder's folders and files as icons or a list), its tab on the client, and the client's Library in the portal. Runwell's tokens only. */
 @layer components {
-  .media-library { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
-  .media-library__main { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
+  /* One column, with the search on the same row as the kinds and views (--media-search-row: the
+  /* first row on Media, the second on a library, under its header). The search stays out of the
+  /* results frame, which redraws as you type, so it keeps its text and focus; the frame lays its
+  /* contents straight into this grid, its toolbar beside the search and the rest below. */
+  .media-library { --media-search-row: 1; --media-search-width: min(20rem, 40%); display: grid; grid-template-columns: minmax(0, 1fr); row-gap: var(--s-4); min-width: 0; }
+  .media-library__main { --media-search-row: 2; display: grid; grid-template-columns: minmax(0, 1fr); row-gap: var(--s-4); min-width: 0; }
   .media-library__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-3); }
   .media-library__head .button-row { flex-wrap: wrap; align-items: center; }
   .media-library__head details[open] { flex-basis: 100%; }
@@ -55,7 +59,13 @@
   .media-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--s-2); }
   .media-toolbar__kinds { flex-wrap: wrap; }
   .media-toolbar .tabs__tab .icon { width: 1rem; height: 1rem; }
-  .media-results { display: flex; flex-direction: column; gap: var(--s-4); min-width: 0; }
+  .media-results { display: contents; }
+  .media-library .media-search { grid-row: var(--media-search-row); grid-column: 1; justify-self: end; width: var(--media-search-width); }
+  .media-library .media-toolbar { grid-row: var(--media-search-row); grid-column: 1; padding-inline-end: calc(var(--media-search-width) + var(--s-3)); }
+  @media (max-width: 640px) {
+    .media-library .media-search { grid-row: auto; justify-self: stretch; width: auto; }
+    .media-library .media-toolbar { grid-row: auto; padding-inline-end: 0; }
+  }
   .media-section { display: flex; flex-direction: column; gap: var(--s-3); min-width: 0; }
   .media-section__title { margin: 0; color: var(--text-muted); font-size: var(--text-meta); font-weight: var(--weight-strong); }
   .media-section__more { margin: 0; color: var(--text-muted); font-size: var(--text-meta); }
