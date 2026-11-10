@@ -151,3 +151,7 @@
   .media-sheet__heading { margin: 0; color: var(--text-muted); font-size: var(--text-meta); font-weight: var(--weight-strong); }
   .media-sheet__facts { font-size: var(--text-meta); }
 }
+
+/* Rune lays every <form> out as a column, in a layer that comes after this file's: unlayered, the
+/* search keeps its icon beside its input. */
+form.media-search { flex-direction: row; gap: var(--s-2); }
