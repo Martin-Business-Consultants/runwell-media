@@ -1,28 +1,16 @@
 <%# locals: (filter:, counts:, url:, keep: {}) %>
 <%# Under the search: a pill per kind of file with how many match the search (empty ones drop out,
-    but never All or the one chosen), and list (the default) or icons for the folders and files (remembered). Each
-    is a link swapping one param, so it's bookmarkable, Back works and an agent gets the same with
-    ?kind=. keep: params the page's address carries (its folder). %>
+    but never All or the one chosen), as runeui's link tabs, and list (the default) or icons for
+    the folders and files (remembered), as runeui's toggle group of links. Each is a link swapping
+    one param, so it's bookmarkable, Back works and an agent gets the same with ?kind=. keep:
+    params the page's address carries (its folder). %>
 <div class="media-toolbar">
   <% shown = Media::Filter::KINDS.select { |key, _| key == filter.kind || counts.fetch(key, 0).positive? } %>
-  <nav class="tabs tabs--pills media-toolbar__kinds" aria-label="Kind of file">
-    <%= link_to media_toolbar_path(url, keep.merge(filter.params(kind: nil))), class: "tabs__tab", aria: { current: filter.kind.nil? ? "page" : "false" }, data: { turbo_action: "replace" } do %>
-      <span>All</span><span class="count count--quiet"><%= counts.fetch("", 0) %></span>
-    <% end %>
-    <% shown.each do |key, label| %>
-      <%# herb:key key %>
-      <%= link_to media_toolbar_path(url, keep.merge(filter.params(kind: key))), class: "tabs__tab", aria: { current: filter.kind == key ? "page" : "false" }, data: { turbo_action: "replace" } do %>
-        <span><%= label %></span><span class="count count--quiet"><%= counts.fetch(key, 0) %></span>
-      <% end %>
-    <% end %>
-  </nav>
-
-  <nav class="tabs tabs--icons media-toolbar__view" aria-label="View">
-    <%= link_to media_toolbar_path(url, keep.merge(filter.params(view: "list"))), class: "tabs__tab", title: "List", aria: { label: "List", current: filter.list? ? "page" : "false" }, data: { turbo_action: "replace" } do %>
-      <%= media_icon :list %>
-    <% end %>
-    <%= link_to media_toolbar_path(url, keep.merge(filter.params(view: "grid"))), class: "tabs__tab", title: "Icons", aria: { label: "Icons", current: filter.list? ? "false" : "page" }, data: { turbo_action: "replace" } do %>
-      <%= icon_tag "grid" %>
-    <% end %>
-  </nav>
+  <% kinds = [ [ "", "All" ] ] + shown.to_a %>
+  <%= ui :tabs, label: "Kind of file", value: filter.kind.to_s, class: "media-toolbar__kinds",
+        tabs: kinds.map { |key, label| { value: key, label: media_tab_label(label, counts.fetch(key, 0)), href: media_toolbar_path(url, keep.merge(filter.params(kind: key.presence))), data: { turbo_action: "replace" } } } %>
+  <%= ui :toggle_group, value: (filter.list? ? "list" : "grid"), variant: :outline, size: :sm, label: "View", class: "media-toolbar__view", options: [
+        [ "List", "list", { icon: media_icon(:list), title: "List", href: media_toolbar_path(url, keep.merge(filter.params(view: "list"))), data: { turbo_action: "replace" } } ],
+        [ "Icons", "grid", { icon: icon_tag("grid"), title: "Icons", href: media_toolbar_path(url, keep.merge(filter.params(view: "grid"))), data: { turbo_action: "replace" } } ]
+      ] %>
 </div>

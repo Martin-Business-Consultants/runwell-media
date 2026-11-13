@@ -1,14 +1,15 @@
 <%# locals: (filter:, url:, placeholder:, keep: {}) %>
-<%# The library's search, sent as you type (q). It redraws only the results frame below it
-    (media_results), so the box keeps its text and focus; the address follows, so a search is
-    bookmarkable and an agent gets the same with ?q=. keep: params the page's address carries (its
-    folder, the kind of file chosen). %>
+<%# The library's search (runeui's input, with a button that empties it), sent as you type (q). It
+    redraws only the results frame below it (media_results), so the box keeps its text and focus;
+    the address follows, so a search is bookmarkable and an agent gets the same with ?q=. keep:
+    params the page's address carries (its folder, the kind of file chosen). %>
 <%= form_with url: url, method: :get, class: "media-search", role: "search", data: { controller: "form", turbo_frame: "media_results", turbo_action: "replace" } do |_form| %>
   <% keep.merge(kind: filter.kind).compact_blank.each do |name, value| %>
     <%# herb:key name %>
     <input type="hidden" name="<%= name %>" value="<%= value %>">
   <% end %>
+  <%= ui :input, name: "q", type: :search, value: filter.query, placeholder: placeholder, clearable: true, autocomplete: "off",
+        aria: { label: placeholder }, data: { "1p_ignore": "true", action: "input->form#debouncedSubmit" } %>
+  <%# After the input, so it's drawn over it. %>
   <%= icon_tag "search" %>
-  <input type="search" name="q" value="<%= filter.query %>" placeholder="<%= placeholder %>" aria-label="<%= placeholder %>"
-    autocomplete="off" data-1p-ignore="true" class="media-search__input" data-action="input->form#debouncedSubmit">
 <% end %>

@@ -5,7 +5,7 @@
     dragged onto it moves there (media--drop), if it's from the same library (client_id); nil leaves
     it a plain link. %>
 <% drop_data = drop.nil? ? {} : { controller: "media--drop", media__drop_url_value: media_document_move_path("__id__"), media__drop_folder_value: drop, media__drop_client_value: client_id, action: "dragover->media--drop#over dragleave->media--drop#leave drop->media--drop#drop" } %>
-<%= link_to path, class: "media-folder", title: name, data: drop_data.merge(turbo_frame: frame).compact do %>
+<%= ui_tag :a, { href: path, class: "media-folder", title: name, data: drop_data.merge(turbo_frame: frame).compact } do %>
   <span class="media-folder__icon">
     <%= media_icon :folder %>
     <% if locked || home %>

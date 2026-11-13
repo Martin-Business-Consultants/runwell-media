@@ -8,8 +8,7 @@
 <turbo-frame id="media_sheet" target="_top">
   <div class="media-sheet" data-media-asset-id="<%= @document.id %>"<% if params[:saved] %> data-media-sheet-changed<% end %>>
     <header class="media-sheet__head">
-      <h2 class="media-sheet__title"><%= @document.media_title %></h2>
-      <button type="button" class="icon-button" data-action="media--sheet#close" aria-label="Close"><%= icon_tag "close" %></button>
+      <ui-drawer-title data-slot="drawer-title" class="media-sheet__title"><%= @document.media_title %></ui-drawer-title>
     </header>
 
     <% preview = media_preview(@document) %>
@@ -27,13 +26,13 @@
       <% else %>
         <a href="<%= media_file_url(@document) %>" target="_blank" rel="noopener" title="Open the file" class="media-sheet__card">
           <span class="media-file__type"><%= @document.filename.extension&.downcase.presence || "file" %></span>
-          <span class="muted small">No preview for this kind of file: open or download it.</span>
+          <span class="media-sheet__hint">No preview for this kind of file: open or download it.</span>
         </a>
       <% end %>
     </div>
-    <div class="button-row">
-      <%= link_to media_file_url(@document, download: true), class: "btn btn--secondary btn--sm", data: { turbo: false } do %><%= icon_tag "install-edge" %> Download<% end %>
-      <%= link_to media_file_url(@document), class: "btn btn--ghost btn--sm", target: "_blank", rel: "noopener", data: { turbo: false } do %><%= icon_tag "arrow-up-right" %> Open<% end %>
+    <div class="media-sheet__actions">
+      <%= ui :button, href: media_file_url(@document, download: true), variant: :outline, size: :sm, data: { turbo: false }, content: safe_join([ icon_tag("install-edge"), "Download" ], " ") %>
+      <%= ui :button, href: media_file_url(@document), variant: :ghost, size: :sm, target: "_blank", rel: "noopener", data: { turbo: false }, content: safe_join([ icon_tag("arrow-up-right"), "Open" ], " ") %>
     </div>
 
     <% if params[:saved] %>
@@ -42,42 +41,36 @@
       <p class="media-sheet__note media-sheet__note--error"><%= params[:error] %></p>
     <% end %>
 
-    <%= form_with model: asset, url: media_asset_path(@document), method: :patch, scope: :asset, namespace: "media_asset_#{@document.id}", class: "media-sheet__form", data: { turbo_frame: "media_sheet" } do |form| %>
-      <div class="field">
-        <%= form.label :filename, "File name", class: "field__label" %>
+    <%= form_with model: asset, url: media_asset_path(@document), method: :patch, scope: :asset, namespace: "media_asset_#{@document.id}", class: "media-form media-sheet__form", data: { turbo_frame: "media_sheet" } do |form| %>
+      <%= form.ui :field, :filename, label: "File name" do %>
         <div class="media-sheet__filename">
-          <%= form.text_field :filename, value: @document.filename.base, required: true, autocomplete: "off" %>
+          <%= form.ui :input, :filename, value: @document.filename.base, required: true, autocomplete: "off" %>
           <span class="media-sheet__extension"><%= @document.filename.extension_with_delimiter %></span>
         </div>
-      </div>
-      <div class="field">
-        <%= form.label :title, "Title", class: "field__label" %>
-        <%= form.text_field :title, autocomplete: "off", placeholder: @document.filename.base, maxlength: 200 %>
-        <p class="field__hint">Shown instead of the file name, here and in the <%= term(:client).downcase %>’s portal.</p>
-      </div>
-      <% if media_image?(@document) %>
-        <div class="field">
-          <%= form.label :alt_text, "Alt text", class: "field__label" %>
-          <%= form.text_field :alt_text, autocomplete: "off", placeholder: "What the image shows, for anyone who can’t see it", maxlength: 500 %>
-        </div>
       <% end %>
-      <div class="field">
-        <%= form.label :caption, "Caption", class: "field__label" %>
-        <%= form.text_field :caption, autocomplete: "off", maxlength: 2000 %>
-      </div>
-      <div class="field">
-        <%= form.label :credit, "Credit", class: "field__label" %>
-        <%= form.text_field :credit, autocomplete: "off", placeholder: "Photo: …", maxlength: 200 %>
-      </div>
-      <div><button type="submit" class="btn btn--primary btn--sm">Save</button></div>
+      <%= form.ui :field, :title, label: "Title", description: "Shown instead of the file name, here and in the #{term(:client).downcase}’s portal." do %>
+        <%= form.ui :input, :title, autocomplete: "off", placeholder: @document.filename.base, maxlength: 200 %>
+      <% end %>
+      <% if media_image?(@document) %>
+        <%= form.ui :field, :alt_text, label: "Alt text" do %>
+          <%= form.ui :input, :alt_text, autocomplete: "off", placeholder: "What the image shows, for anyone who can’t see it", maxlength: 500 %>
+        <% end %>
+      <% end %>
+      <%= form.ui :field, :caption, label: "Caption" do %>
+        <%= form.ui :input, :caption, autocomplete: "off", maxlength: 2000 %>
+      <% end %>
+      <%= form.ui :field, :credit, label: "Credit" do %>
+        <%= form.ui :input, :credit, autocomplete: "off", placeholder: "Photo: …", maxlength: 200 %>
+      <% end %>
+      <div><%= ui :button, type: :submit, size: :sm, content: "Save" %></div>
     <% end %>
 
-    <dl class="details media-sheet__facts">
+    <dl class="media-sheet__facts">
       <dt>Size</dt><dd><%= number_to_human_size(@document.byte_size) %> · <%= @document.content_type %></dd>
       <% if @document.file.blob.metadata["width"] %>
         <dt>Dimensions</dt><dd><%= @document.file.blob.metadata["width"] %> × <%= @document.file.blob.metadata["height"] %></dd>
       <% end %>
-      <dt>Kept on</dt><dd><%= link_to(media_origin(@document) || @library.client.name, polymorphic_path(@document.documentable.is_a?(ScopeItem) ? @document.documentable.work : @document.documentable)) %></dd>
+      <dt>Kept on</dt><dd><a href="<%= polymorphic_path(@document.documentable.is_a?(ScopeItem) ? @document.documentable.work : @document.documentable) %>"><%= media_origin(@document) || @library.client.name %></a></dd>
       <dt>Added</dt><dd><%= l @document.created_at.to_date, format: :long %><% if @document.uploaded_by %> by <%= person_tag @document.uploaded_by %><% end %></dd>
       <dt>Folder</dt><dd><%= placement_folder ? placement_folder.path : "Top of the library" %></dd>
     </dl>
@@ -85,7 +78,7 @@
     <section class="media-sheet__section">
       <h3 class="media-sheet__heading"><%= term(:client) %> sees it</h3>
       <% if locked %>
-        <p class="muted small"><%= icon_tag "lock" %> No: it’s in <%= placement_folder.path %>, which is kept from the <%= term(:client).downcase %>.</p>
+        <p class="media-sheet__hint"><%= icon_tag "lock" %> No: it’s in <%= placement_folder.path %>, which is kept from the <%= term(:client).downcase %>.</p>
       <% else %>
         <%= form_with model: @document, namespace: "media_sheet_share_#{@document.id}", class: "media-sheet__share", data: { controller: "form", turbo_frame: "media_sheet" } do |form| %>
           <%= switch_field form, :client_visible, label: "Shown in their portal", submit_on_change: true %>
@@ -96,15 +89,18 @@
     <section class="media-sheet__section">
       <h3 class="media-sheet__heading">Move to</h3>
       <%= form_with url: media_document_move_path(@document), namespace: "media_sheet_move_#{@document.id}", class: "media-file__move-form" do |form| %>
-        <%= form.select :folder_id, media_folder_options(@library), { selected: placement_folder&.id }, class: "select--sm", aria: { label: "Move to" } %>
-        <button type="submit" class="btn btn--secondary btn--sm">Move</button>
+        <%= form.select :folder_id, media_folder_options(@library), { selected: placement_folder&.id }, aria: { label: "Move to" } %>
+        <%= ui :button, type: :submit, variant: :outline, size: :sm, content: "Move" %>
       <% end %>
     </section>
 
     <% if @document.deletable_by?(Current.user) %>
       <section class="media-sheet__section media-sheet__danger">
-        <%= render "layouts/shared/delete_dialog", name: @document.filename.to_s, path: document_path(@document),
-              message: "The file is removed for everyone, including the client’s portal and the record it’s kept on." %>
+        <%# Asked inside the drawer (runeui's alert dialog, nested in it), not in the page's one confirm
+            dialog, which a modal drawer leaves out of reach. %>
+        <%= ui :alert_dialog, title: "Delete #{@document.filename}?", variant: :destructive, action: "Delete", href: document_path(@document), method: :delete,
+              description: "The file is removed for everyone, including the #{term(:client).downcase}’s portal and the record it’s kept on.",
+              trigger: ui(:button, variant: :ghost, size: :sm, class: "media-sheet__delete", content: safe_join([ icon_tag("trash"), "Delete the file" ], " ")) %>
       </section>
     <% end %>
   </div>

@@ -53,6 +53,9 @@ module Media
       tag.svg(MEDIA_ICONS.fetch(name).html_safe, class: [ "icon", "media-icon--#{name}", css ], viewBox: "0 0 16 16", aria: { hidden: true })
     end
 
+    # A kind of file's tab: its name and how many match.
+    def media_tab_label(label, count) = safe_join([ label, tag.span(count, class: "media-count") ], " ")
+
     # A toolbar link: the page's path with these params (blank ones dropped).
     def media_toolbar_path(path, params)
       query = params.compact_blank.to_query

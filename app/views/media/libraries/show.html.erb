@@ -10,39 +10,33 @@
 <div class="media-library">
   <section class="media-library__main">
     <header class="media-library__head">
-      <nav class="media-crumbs" aria-label="Folder">
-        <%= link_to "Top", media_library_path(@client), class: "media-crumbs__link" %>
-        <% crumbs.each do |crumb| %>
-          <%# herb:key crumb.id %>
-          <span class="media-crumbs__sep" aria-hidden="true">/</span>
-          <%= link_to crumb.name, media_library_path(@client, folder: crumb.id), class: "media-crumbs__link" %>
-        <% end %>
-      </nav>
+      <%= ui :breadcrumb, class: "media-crumbs", aria: { label: "Folder" },
+            items: [ [ "Top", media_library_path(@client) ] ] + crumbs.map { [ it.name, media_library_path(@client, folder: it.id) ] } %>
       <% if @folder %>
-        <div class="button-row">
+        <div class="media-library__actions">
           <% if @folder.hidden? %>
-            <span class="badge media-badge--locked"><%= icon_tag "lock" %> Kept from <%= @client.name %></span>
-            <%= button_to "Open to the #{term(:client).downcase}", media_folder_lock_path(@folder), method: :delete, class: "btn btn--secondary btn--sm",
-                  title: "Files shared before it was locked are shared again" %>
+            <%= ui :badge, variant: :secondary, content: safe_join([ icon_tag("lock"), "Kept from #{@client.name}" ], " ") %>
+            <%= form_with url: media_folder_lock_path(@folder), method: :delete, class: "media-inline-form" do %>
+              <%= ui :button, type: :submit, variant: :outline, size: :sm, title: "Files shared before it was locked are shared again", content: "Open to the #{term(:client).downcase}" %>
+            <% end %>
           <% elsif locked %>
-            <span class="badge media-badge--locked"><%= icon_tag "lock" %> Kept from <%= @client.name %> by a folder above</span>
+            <%= ui :badge, variant: :secondary, content: safe_join([ icon_tag("lock"), "Kept from #{@client.name} by a folder above" ], " ") %>
           <% else %>
-            <%= button_to media_folder_lock_path(@folder), class: "btn btn--secondary btn--sm", title: "Nothing in it reaches the #{term(:client).downcase}’s portal" do %>
-              <%= icon_tag "lock" %> Keep from the <%= term(:client).downcase %>
+            <%= form_with url: media_folder_lock_path(@folder), class: "media-inline-form" do %>
+              <%= ui :button, type: :submit, variant: :outline, size: :sm, title: "Nothing in it reaches the #{term(:client).downcase}’s portal",
+                    content: safe_join([ icon_tag("lock"), "Keep from the #{term(:client).downcase}" ], " ") %>
             <% end %>
           <% end %>
           <details class="media-library__rename">
-            <summary class="btn btn--ghost btn--sm"><%= icon_tag "pencil" %> Rename or move</summary>
-            <%= form_with model: @folder, url: media_folder_path(@folder), method: :patch, scope: :folder, namespace: dom_id(@folder), class: "settings-subform" do |form| %>
-              <div class="field">
-                <%= form.label :name, "Name", class: "field__label" %>
-                <%= form.text_field :name, required: true, autocomplete: "off", maxlength: 80 %>
-              </div>
-              <div class="field">
-                <%= form.label :parent_id, "Inside", class: "field__label" %>
+            <summary class="ui-button" data-variant="ghost" data-size="sm"><%= icon_tag "pencil" %> Rename or move</summary>
+            <%= form_with model: @folder, url: media_folder_path(@folder), method: :patch, scope: :folder, namespace: dom_id(@folder), class: "media-form" do |form| %>
+              <%= form.ui :field, :name, label: "Name" do %>
+                <%= form.ui :input, :name, required: true, autocomplete: "off", maxlength: 80 %>
+              <% end %>
+              <%= form.ui :field, :parent_id, label: "Inside" do %>
                 <%= form.select :parent_id, media_folder_options(@library).reject { |_, id| id.to_s.present? && id.in?(@folder.subtree_ids) }, { selected: @folder.parent_id } %>
-              </div>
-              <div><button type="submit" class="btn btn--primary btn--sm">Save</button></div>
+              <% end %>
+              <div><%= ui :button, type: :submit, size: :sm, content: "Save" %></div>
             <% end %>
           </details>
           <% if @folder.empty? %>
@@ -67,7 +61,7 @@
         (each saying which folder). Otherwise it's the open folder's folders and files. A kind of
         file narrows the files and puts the folders away. %>
     <% if @filter.searching? %>
-      <p class="media-section__more">Searching all of <%= @client.name %>’s library. <%= link_to "Clear", media_library_path(@client, folder: @folder&.id) %></p>
+      <p class="media-section__more">Searching all of <%= @client.name %>’s library. <a href="<%= media_library_path(@client, folder: @folder&.id) %>">Clear</a></p>
     <% end %>
     <% if @folders.any? && @filter.kind.nil? %>
       <ul class="<%= class_names("media-folders", "media-folders--list": @filter.list?) %>">

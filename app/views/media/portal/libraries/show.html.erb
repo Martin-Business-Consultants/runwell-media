@@ -7,14 +7,8 @@
 
 <%# What's shared with the client, in the folders not kept from them (Media::Library.for_client). %>
 <% if @folder %>
-  <nav class="media-crumbs" aria-label="Folder">
-    <%= link_to media_portal_name, media_portal_library_path, class: "media-crumbs__link" %>
-    <% crumbs.each do |crumb| %>
-      <%# herb:key crumb.id %>
-      <span class="media-crumbs__sep" aria-hidden="true">/</span>
-      <%= link_to crumb.name, media_portal_library_path(folder: crumb.id), class: "media-crumbs__link" %>
-    <% end %>
-  </nav>
+  <%= ui :breadcrumb, class: "media-crumbs", aria: { label: "Folder" },
+        items: [ [ media_portal_name, media_portal_library_path ] ] + crumbs.map { [ it.name, media_portal_library_path(folder: it.id) ] } %>
 <% end %>
 
 <% folders = @library.folders_in(@folder).select { @library.shown?(it) } %>
@@ -35,15 +29,15 @@
     <% files.each do |document| %>
       <%# herb:key document.id %>
       <li class="media-file">
-        <%= link_to media_file_url(document), class: "media-file__preview", target: "_blank", rel: "noopener" do %>
+        <a href="<%= media_file_url(document) %>" class="media-file__preview" target="_blank" rel="noopener">
           <% if media_image?(document) %>
             <img src="<%= media_file_url(document) %>" alt="<%= document.media_asset&.alt_text %>" loading="lazy" class="media-file__image">
           <% else %>
             <span class="media-file__type"><%= document.filename.extension&.downcase.presence || "file" %></span>
           <% end %>
-        <% end %>
+        </a>
         <div class="media-file__body">
-          <%= link_to document.media_title, media_file_url(document, download: true), class: "media-file__name", title: "Download #{document.filename}" %>
+          <a href="<%= media_file_url(document, download: true) %>" class="media-file__name" title="Download <%= document.filename %>"><%= document.media_title %></a>
           <% if document.media_asset&.caption.present? %>
             <p class="media-file__caption"><%= document.media_asset.caption %></p>
           <% end %>

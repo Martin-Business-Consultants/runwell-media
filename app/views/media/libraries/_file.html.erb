@@ -5,7 +5,7 @@
     folder); dragging it onto a folder moves it there (media--drag). %>
 <li class="media-file" id="<%= dom_id(document, :media) %>" data-filter-target="item" draggable="true"
   data-controller="media--drag" data-media--drag-id-value="<%= document.id %>" data-media--drag-client-value="<%= client_id %>" data-action="dragstart->media--drag#start dragend->media--drag#end">
-  <%= link_to media_asset_path(document), class: "media-file__open", draggable: "false", data: { turbo_frame: "media_sheet" }, aria: { label: "Open #{document.media_title}" } do %>
+  <a href="<%= media_asset_path(document) %>" class="media-file__open" draggable="false" data-turbo-frame="media_sheet" aria-label="Open <%= document.media_title %>">
     <span class="media-file__preview">
       <% if media_image?(document) %>
         <img src="<%= media_file_url(document) %>" alt="<%= document.media_asset&.alt_text %>" loading="lazy" class="media-file__image" draggable="false">
@@ -17,15 +17,15 @@
       <span class="media-file__name" title="<%= document.filename %>"><%= document.media_title %></span>
       <span class="media-file__meta"><%= [ number_to_human_size(document.byte_size), place, media_origin(document) ].compact.join(" · ") %></span>
     </span>
-  <% end %>
+  </a>
   <span class="media-file__badges">
     <% if locked %>
-      <span class="badge" title="In a folder kept from the client"><%= icon_tag "lock" %></span>
+      <%= ui :badge, variant: :secondary, title: "In a folder kept from the client", aria: { label: "Kept from the client" }, content: icon_tag("lock") %>
     <% elsif document.client_visible? %>
-      <span class="badge badge--ok" title="The client sees it in their portal">Shared</span>
+      <%= ui :badge, variant: :success, title: "The client sees it in their portal", content: "Shared" %>
     <% end %>
     <% if media_image?(document) && document.media_asset&.alt_text.blank? %>
-      <span class="badge badge--outline" title="No alt text yet: open it to add some">No alt</span>
+      <%= ui :badge, variant: :outline, title: "No alt text yet: open it to add some", content: "No alt" %>
     <% end %>
   </span>
 </li>

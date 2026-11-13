@@ -30,7 +30,7 @@ library go on the client.
   `upload_media_files`, `move_media_file`, `show_media_file`, `update_media_file`, and
   `portal_library` for a client's agent.
 
-Requires Runwell 5.12 or later. Install it from Settings > Plugins with
+Requires Runwell 6.0 or later (drawn with runeui, its UI kit). Install it from Settings > Plugins with
 `Martin-Business-Consultants/runwell-media`, then switch it on.
 
 The plugin owns `media_folders`, `media_placements` and `media_assets` (a file's details); the files stay the core's Documents, so

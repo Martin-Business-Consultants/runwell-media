@@ -34,7 +34,7 @@ module Media
 
     config.to_prepare do
       Runwell::Plugins.register :media, name: "Media", version: Media::VERSION, author: "Martin Business Consultants",
-        enabled_by_default: false, requires: ">= 5.12.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-media",
+        enabled_by_default: false, requires: ">= 6.0.0", homepage: "https://github.com/Martin-Business-Consultants/runwell-media",
         description: "A library of each client's files and media, in folders: everything already kept on the client, its work and tasks, arranged and shared from one place. Folders can be kept from the client, so nothing in them reaches the portal; clients browse what's shared in a Library page of their portal."
       Runwell::Plugins.nav :media, "Media", -> { media_libraries_path }, icon: "picture-add"
       Runwell::Plugins.slot :client_panel, :media, "media/slots/client_panel"

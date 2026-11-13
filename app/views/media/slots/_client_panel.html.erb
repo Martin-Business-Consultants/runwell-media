@@ -1,14 +1,10 @@
 <%# locals: (client:) %>
 <%# The client's Media tab: its library's folders at the top, how many files each holds, and the
-    way into the full library. %>
+    way into the full library (a record card, as the client's other tabs are). %>
 <% library = Media::Library.new(client) %>
-<section class="card record-card">
-  <header class="card__head">
-    <h2 class="card__title">Media</h2>
-    <p class="card__hint"><%= pluralize(library.documents.size, "file") %> in <%= pluralize(library.folders.size, "folder") %>, wherever they’re kept.</p>
-    <div class="card__action"><%= link_to "Open the library", media_library_path(client), class: "btn btn--secondary btn--sm", data: { turbo_frame: "_top" } %></div>
-  </header>
-  <% folders = library.folders_in(nil) %>
+<% folders = library.folders_in(nil) %>
+<%= record_card "Media", hint: "#{pluralize(library.documents.size, "file")} in #{pluralize(library.folders.size, "folder")}, wherever they’re kept.",
+      action: ui(:button, href: media_library_path(client), variant: :outline, size: :sm, data: { turbo_frame: "_top" }, content: "Open the library") do %>
   <% if folders.any? %>
     <ul class="media-folders">
       <% folders.each do |folder| %>
@@ -20,6 +16,6 @@
       <% end %>
     </ul>
   <% else %>
-    <p class="record-card__empty">No folders yet. Open the library to make some.</p>
+    <%= ui :empty, size: :sm, description: "No folders yet. Open the library to make some." %>
   <% end %>
-</section>
+<% end %>

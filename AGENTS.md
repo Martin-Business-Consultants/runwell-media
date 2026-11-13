@@ -21,8 +21,15 @@ Read first, in Runwell's repository:
 - Views follow the core's ReActionView rules: strict locals on every partial's first line,
   `<%# herb:key %>` before each loop row, no inline CSS, no partials inside `form_with`. Use the
   core's helpers and shared partials (listed in the contract) and `term()` for the core's nouns.
-- CSS uses Runwell's design tokens (`docs/theming.md`), in `@layer components`, with radii through
-  `--radius-scale` / `--radius-control`.
+- Views draw with runeui, Runwell 6.0's UI kit: `ui :button`, `ui :badge`, `ui :tabs`,
+  `ui :toggle_group`, `ui :breadcrumb`, `ui :drawer` (the file sheet), `ui :alert_dialog`, `ui :empty`,
+  and `form.ui :field` around each control, plus the core's helpers (`record_card`, `switch_field`,
+  `icon_tag`, `person_tag`). No rune_ui helpers or classes.
+- CSS reads runeui's tokens only (shadcn's names: `--foreground`, `--muted-foreground`, `--border`,
+  `--primary` for the brand, `--accent` the hover fill, `--destructive`…; runeui's `--ui-*` scale;
+  `docs/theming.md`), in `@layer components`, never rune_ui's old names (`--text-*`, `--line`,
+  `--s-*`, `--accent` as the brand). Spacing in rems, corners `--ui-radius-*`. The stylesheet starts
+  with `/* tokens: runeui */`, so the core serves it as written.
 - Migrations are safe on a live install: add in one release, remove only in a later one.
 - Use only gems Runwell bundles: plugins load outside Bundler.
 - JavaScript is the plugin's own, in `app/javascript/media/`: Stimulus controllers in

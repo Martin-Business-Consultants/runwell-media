@@ -29,9 +29,9 @@
               <summary class="media-nav__link media-nav__add"><%= icon_tag "add" %><span class="media-nav__name">New folder</span></summary>
               <%= form_with url: media_folders_path(client_id: library.id), scope: :folder, namespace: "new_media_folder", class: "media-nav__form" do |form| %>
                 <%= form.hidden_field :parent_id, value: folder&.id %>
-                <%= form.text_field :name, required: true, autocomplete: "off", placeholder: "Folder name", maxlength: 80, aria: { label: "Folder name" } %>
-                <p class="field__hint">Inside <%= folder ? folder.name : "the top of the library" %>.</p>
-                <div><button type="submit" class="btn btn--primary btn--sm">Add folder</button></div>
+                <%= form.ui :input, :name, required: true, autocomplete: "off", placeholder: "Folder name", maxlength: 80, aria: { label: "Folder name" } %>
+                <p class="media-nav__hint">Inside <%= folder ? folder.name : "the top of the library" %>.</p>
+                <div><%= ui :button, type: :submit, size: :sm, content: "Add folder" %></div>
               <% end %>
             </details>
           <% end %>
